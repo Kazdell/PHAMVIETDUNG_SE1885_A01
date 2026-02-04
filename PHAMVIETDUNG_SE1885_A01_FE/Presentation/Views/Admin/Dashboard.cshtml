@@ -1,0 +1,113 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="Container">
+    <h2 class="mb-4">Admin Dashboard</h2>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-warning">@ViewBag.Error</div>
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-12 text-end">
+            <a href="@Url.Action("ExportReports", "Admin")" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel"></i> Export Report
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4" id="stats-container">
+        <!-- Rendered via JS -->
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Article Status</div>
+                <div class="card-body">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Top Categories</div>
+                <div class="card-body">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const rawData = '@Html.Raw(ViewBag.DashboardStats)';
+        if (!rawData) return;
+
+        const data = JSON.parse(rawData);
+
+        // Render Cards
+        const statsHtml = `
+            <div class="col-md-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5>Total Articles</h5>
+                        <h2>${data.totalArticles}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5>Total Authors</h5>
+                        <h2>${data.totalAuthors}</h2>
+                    </div>
+                </div>
+            </div>
+             <div class="col-md-4">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <h5>Total Categories</h5>
+                        <h2>${data.totalCategories}</h2>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('stats-container').innerHTML = statsHtml;
+
+        // Render Status Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(data.statusBreakdown),
+                datasets: [{
+                    data: Object.values(data.statusBreakdown),
+                    backgroundColor: ['#28a745', '#dc3545']
+                }]
+            }
+        });
+
+        // Render Category Chart
+        if (data.topCategories && data.topCategories.length > 0) {
+            const catCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(catCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.topCategories.map(c => c.category),
+                    datasets: [{
+                        label: 'Articles',
+                        data: data.topCategories.map(c => c.count),
+                        backgroundColor: '#007bff'
+                    }]
+                }
+            });
+        }
+    });
+</script>

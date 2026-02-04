@@ -1,0 +1,71 @@
+@model PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.NewsArticleViewModel
+
+@{
+    ViewData["Title"] = Model.NewsTitle;
+    var relatedNews = ViewData["RelatedNews"] as List<PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.NewsArticleViewModel>;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <article>
+                <header class="mb-4">
+                    <div class="badge bg-primary mb-2">News</div>
+                    <h1 class="fw-bolder mb-1">@Model.NewsTitle</h1>
+                    <p class="text-muted fst-italic mb-2">@Model.Headline</p> 
+                    <div class="text-muted small">
+                        Published on @Model.CreatedDate?.ToString("MMMM dd, yyyy") by <span class="fw-bold">System</span>
+                    </div>
+                    <!-- Tags -->
+                    <div class="mt-2">
+                        @if (Model.NewsTags != null && Model.NewsTags.Any())
+                        {
+                            foreach (var nt in Model.NewsTags)
+                            {
+                                <span class="badge bg-secondary me-1">#@nt.Tag?.TagName</span>
+                            }
+                        }
+                    </div>
+                </header>
+                
+                <!-- Preview Image (Placeholder) -->
+
+                
+                <!-- Content -->
+                <section class="mb-5 fs-5" style="line-height: 1.8; color: #374151;">
+                    @Html.Raw(Model.NewsContent)
+                </section>
+            </article>
+            
+            <div class="d-flex justify-content-between my-5 pt-3 border-top">
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back onto Headlines</a>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="position-sticky" style="top: 6rem;">
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom-0 fw-bold">Related News</div>
+                    <div class="list-group list-group-flush">
+                         @if (relatedNews != null && relatedNews.Any())
+                        {
+                            @foreach (var item in relatedNews)
+                            {
+                                <a asp-action="Details" asp-route-id="@item.NewsArticleId" class="list-group-item list-group-item-action p-3 border-0 border-bottom">
+                                    <div class="fw-bold text-dark mb-1">@item.NewsTitle</div>
+                                    <small class="text-muted">@item.CreatedDate?.ToString("MMM dd")</small>
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <div class="p-3 text-muted">No related news found.</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

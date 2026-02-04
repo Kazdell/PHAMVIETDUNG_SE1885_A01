@@ -1,0 +1,92 @@
+@model IEnumerable<PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.NewsArticleViewModel>
+
+@{
+    ViewData["Title"] = "News Management";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">News Management</h1>
+        <p class="text-muted mb-0">Create, edit and manage news articles</p>
+    </div>
+    <button type="button" onclick="loadModal('@Url.Action("CreateNews", "Staff")', 'Create News Article')" class="btn btn-primary d-flex align-items-center gap-2 px-4 shadow-sm">
+        <i class="bi bi-plus-lg"></i> 
+        <span>New Article</span>
+    </button>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body bg-light rounded-top border-bottom">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="searchKeyword" class="form-control border-start-0 ps-0" placeholder="Search by title, headline, author..." onkeyup="debounceFilter()">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select id="searchCategory" class="form-select" onchange="filterNews(1)">
+                    <option value="">All Categories</option>
+                    @if (ViewData["Categories"] is List<PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.CategoryViewModel> categories)
+                    {
+                        foreach (var cat in categories)
+                        {
+                            <option value="@cat.CategoryId">@cat.CategoryName</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select id="searchStatus" class="form-select" onchange="filterNews(1)">
+                    <option value="">All Status</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
+            </div>
+             <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">Reset</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="newsTableContainer" class="card-body p-0">
+        <partial name="_NewsTablePartial" model="Model" />
+    </div>
+</div>
+
+<!-- Modal Container (Shared) -->
+<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+    <div id="modal-placeholder"></div>
+</div>
+
+@section Scripts {
+    <script>
+        let debounceTimer;
+
+        function debounceFilter() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => filterNews(1), 500);
+        }
+
+        function filterNews(page) {
+            const keyword = document.getElementById('searchKeyword').value;
+            const category = document.getElementById('searchCategory').value;
+            const status = document.getElementById('searchStatus').value;
+
+            const url = `@Url.Action("FilterNews", "Staff")?page=${page}&keyword=${encodeURIComponent(keyword)}&categoryId=${category}&status=${status}`;
+
+            $.get(url, function (data) {
+                $('#newsTableContainer').html(data);
+            }).fail(function () {
+                alert('Failed to load data.');
+            });
+        }
+
+        function resetFilters() {
+            document.getElementById('searchKeyword').value = '';
+            document.getElementById('searchCategory').value = '';
+            document.getElementById('searchStatus').value = '';
+            filterNews(1);
+        }
+    </script>
+}

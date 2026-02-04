@@ -1,0 +1,18 @@
+using PHAMVIETDUNG_SE1885_A01_BE.DataAccess.Models;
+
+namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
+{
+    public interface INewsArticleService
+    {
+        IEnumerable<NewsArticle> GetAllNews();
+        IEnumerable<NewsArticle> GetActiveNews();
+        NewsArticle GetNewsById(string id);
+        void CreateNews(NewsArticle news, List<int>? tagIds = null);
+        void UpdateNews(NewsArticle news, List<int>? tagIds = null);
+        void DeleteNews(string id);
+        IEnumerable<NewsArticle> SearchNews(string keyword);
+        IEnumerable<NewsArticle> GetRelatedNews(string newsId);
+        ViewModels.ReportResult GetNewsReport(DateTime? startDate, DateTime? endDate, int? categoryId, short? createdById, bool? status, int page, int pageSize);
+        void DuplicateNews(string id, short userId);
+    }
+}

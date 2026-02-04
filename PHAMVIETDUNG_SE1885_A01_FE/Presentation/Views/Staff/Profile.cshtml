@@ -1,0 +1,40 @@
+@model PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.SystemAccountViewModel
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<h1>My Profile</h1>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fs-3 fw-bold me-3" style="width: 64px; height: 64px;">
+                        @(Model.AccountName?.Substring(0, 1).ToUpper() ?? "U")
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">@Model.AccountName</h4>
+                        <span class="badge bg-info-subtle text-info-emphasis border rounded-pill">Staff Member</span>
+                    </div>
+                </div>
+                
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted small text-uppercase fw-semibold mb-3">Email Address</dt>
+                    <dd class="col-sm-8 mb-3">@Model.AccountEmail</dd>
+
+                    <dt class="col-sm-4 text-muted small text-uppercase fw-semibold mb-3">Role</dt>
+                    <dd class="col-sm-8 mb-3">Staff</dd>
+                    
+                    <dt class="col-sm-4 text-muted small text-uppercase fw-semibold">Account ID</dt>
+                    <dd class="col-sm-8 mb-0">@Model.AccountId</dd>
+                </dl>
+            </div>
+            <div class="card-footer bg-light border-top-0 p-3 d-flex justify-content-between">
+                <a asp-action="News" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+                <a asp-action="EditProfile" class="btn btn-primary px-4"><i class="bi bi-pencil-square"></i> Edit Profile</a>
+            </div>
+        </div>
+    </div>
+</div>

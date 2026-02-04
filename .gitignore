@@ -1,0 +1,9 @@
+
+# Agent Artifacts
+.agent/
+.gemini/
+
+# Visual Studio
+.vs/
+bin/
+obj/

@@ -1,0 +1,85 @@
+﻿@model IEnumerable<PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.NewsArticleViewModel>
+
+@{
+    ViewData["Title"] = "Home Page";
+    var featured = Model?.FirstOrDefault();
+    var others = Model?.Skip(1).ToList();
+}
+
+<!-- Hero Section -->
+@if (featured != null)
+{
+    <div class="card hero-card bg-dark text-white mb-5 shadow-lg border-0" style="min-height: 400px; background-image: url('https://picsum.photos/1200/600'); background-size: cover; background-position: center;">
+        <div class="hero-overlay">
+            <h1 class="hero-title">@featured.NewsTitle</h1>
+            <p class="lead">@featured.Headline</p>
+            <a asp-action="Details" asp-route-id="@featured.NewsArticleId" class="btn btn-primary btn-lg mt-2">Read Article</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <h1 class="display-4 fw-bold text-primary">FUNews</h1>
+        <p class="lead text-muted">Your daily source of verified news.</p>
+    </div>
+}
+
+<!-- News Grid -->
+<div class="row g-4">
+    <div class="col-12 mb-2">
+        <h3 class="fw-bold border-bottom pb-2">Latest Stories</h3>
+    </div>
+
+    @if (others != null && others.Any())
+    {
+        @foreach (var item in others)
+        {
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-light text-primary border">News</span>
+                            <small class="text-muted">@item.CreatedDate?.ToString("MMM dd")</small>
+                        </div>
+                        <h5 class="card-title fw-bold mb-3">
+                            <a asp-action="Details" asp-route-id="@item.NewsArticleId" class="text-dark text-decoration-none stretched-link">
+                                @item.NewsTitle
+                            </a>
+                        </h5>
+                        <p class="card-text text-muted flex-grow-1 text-truncate">@item.Headline</p>
+                        
+                        <div class="mt-3">
+                            @if (item.NewsTags != null)
+                            {
+                                foreach (var nt in item.NewsTags.Take(2))
+                                {
+                                    <span class="badge bg-secondary opacity-75 me-1" style="font-size: 0.7rem;">#@nt.Tag?.TagName</span>
+                                }
+                                if (item.NewsTags.Count > 2)
+                                {
+                                    <small class="text-muted" style="font-size: 0.7rem;">+@(item.NewsTags.Count - 2)</small>
+                                }
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0 pb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-gray-200 me-2" style="width: 24px; height: 24px;"></div>
+                            <small class="text-muted">By System</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else if (featured == null)
+    {
+         <div class="col-12">
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-1"></i>
+                <p class="mt-2">No news articles available.</p>
+            </div>
+        </div>
+    }
+</div>

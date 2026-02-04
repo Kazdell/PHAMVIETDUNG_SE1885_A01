@@ -1,0 +1,34 @@
+@model IEnumerable<PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.NewsArticleViewModel>
+
+@{
+    ViewData["Title"] = "My News History";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">My News History</h1>
+        <p class="text-muted mb-0">Articles created by you</p>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div id="newsTableContainer" class="card-body p-0">
+        <partial name="_NewsTablePartial" model="Model" />
+    </div>
+</div>
+
+<!-- Modal Container (Shared) -->
+<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+    <div id="modal-placeholder"></div>
+</div>
+
+@section Scripts {
+    <script>
+        // Override pagination function to work with standard Controller Action "History"
+        function filterNews(page) {
+            window.location.href = '@Url.Action("History", "Staff")?page=' + page;
+        }
+
+        // Include modal logic if not globally included, but modal.js is global.
+    </script>
+}

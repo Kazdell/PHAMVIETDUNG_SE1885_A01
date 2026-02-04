@@ -1,0 +1,118 @@
+@model PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.ReportResultViewModel
+
+@{
+    ViewData["Title"] = "Advanced News Report";
+    
+    var categories = ViewData["Categories"] as List<PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.CategoryViewModel>;
+    var authors = ViewData["Authors"] as List<PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.SystemAccountViewModel>;
+    
+    // ViewDatas for initial State
+    var currentStart = ViewData["CurrentStartDate"] as string;
+    var currentEnd = ViewData["CurrentEndDate"] as string;
+    var currentCat = ViewData["CurrentCategoryId"] as int?;
+    var currentAuthor = ViewData["CurrentCreatedById"] as short?;
+    var currentStatus = ViewData["CurrentStatus"] as bool?;
+}
+
+<div class="container-fluid">
+    <h1 class="mb-4">Advanced News Statistics</h1>
+
+    <!-- Filter Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-funnel"></i> Filters
+        </div>
+        <div class="card-body">
+            <form id="reportFilterForm" onsubmit="event.preventDefault(); filterReport(1);" class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" id="startDate" name="startDate" class="form-control" value="@currentStart" onchange="filterReport(1)" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">End Date</label>
+                    <input type="date" id="endDate" name="endDate" class="form-control" value="@currentEnd" onchange="filterReport(1)" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Category</label>
+                    <select id="categoryId" name="categoryId" class="form-select" onchange="filterReport(1)">
+                        <option value="">-- All --</option>
+                        @if (categories != null)
+                        {
+                            foreach (var cat in categories)
+                            {
+                                 if (currentCat == cat.CategoryId) { <option value="@cat.CategoryId" selected>@cat.CategoryName</option> }
+                                 else { <option value="@cat.CategoryId">@cat.CategoryName</option> }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Author</label>
+                    <select id="createdById" name="createdById" class="form-select" onchange="filterReport(1)">
+                        <option value="">-- All --</option>
+                         @if (authors != null)
+                        {
+                            foreach (var auth in authors)
+                            {
+                                if (currentAuthor == auth.AccountId) { <option value="@auth.AccountId" selected>@auth.AccountName</option> }
+                                else { <option value="@auth.AccountId">@auth.AccountName</option> }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select id="status" name="status" class="form-select" onchange="filterReport(1)">
+                        <option value="">-- All --</option>
+                        @if (currentStatus == true) { <option value="true" selected>Active</option> } else { <option value="true">Active</option> }
+                        @if (currentStatus == false) { <option value="false" selected>Inactive</option> } else { <option value="false">Inactive</option> }
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100 me-2">Apply</button>
+                    <button type="button" class="btn btn-secondary w-100" onclick="resetReport()">Reset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Partial Container -->
+    <div id="reportContainer">
+        <partial name="_ReportGridPartial" model="Model" />
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        function filterReport(page) {
+            const data = {
+                startDate: $('#startDate').val(),
+                endDate: $('#endDate').val(),
+                categoryId: $('#categoryId').val(),
+                createdById: $('#createdById').val(),
+                status: $('#status').val(),
+                page: page
+            };
+
+            const url = `@Url.Action("FilterReport", "Admin")`;
+
+            $.get(url, data, function (response) {
+                $('#reportContainer').html(response);
+            }).fail(function () {
+                alert('Failed to load report data.');
+            });
+        }
+
+        function resetReport() {
+            $('#reportFilterForm')[0].reset();
+            // Manually clear values because reset might revert to initial value (HTML attribute) instead of empty
+            $('#startDate').val('');
+            $('#endDate').val('');
+            $('#categoryId').val('');
+            $('#createdById').val('');
+            $('#status').val('');
+            filterReport(1);
+        }
+    </script>
+}
