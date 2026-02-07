@@ -47,9 +47,9 @@
                     <td class="text-muted small">@item.CreatedDate?.ToString("MMM dd, yyyy")</td>
                     <td class="text-end pe-4">
                         <div class="btn-group">
-                            <button type="button" onclick="loadModal('@Url.Action("EditNews", "Staff", new { id = item.NewsArticleId })', 'Edit News Article')" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></button>
-                            <a asp-action="DuplicateNews" asp-route-id="@item.NewsArticleId" class="btn btn-sm btn-outline-primary" title="Copy"><i class="bi bi-files"></i></a>
-                            <a asp-action="DeleteNews" asp-route-id="@item.NewsArticleId" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?');" title="Delete"><i class="bi bi-trash"></i></a>
+                            <button type="button" onclick="loadModal('@Url.Action("EditNews", "Staff", new { id = item.NewsArticleId })', 'Edit News Article')" class="btn btn-sm btn-outline-secondary" title="Edit" data-requires-online="true"><i class="bi bi-pencil"></i></button>
+                            <a asp-action="DuplicateNews" asp-route-id="@item.NewsArticleId" class="btn btn-sm btn-outline-primary" title="Copy" data-requires-online="true"><i class="bi bi-files"></i></a>
+                            <a asp-action="DeleteNews" asp-route-id="@item.NewsArticleId" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?');" title="Delete" data-requires-online="true"><i class="bi bi-trash"></i></a>
                         </div>
                     </td>
                 </tr>

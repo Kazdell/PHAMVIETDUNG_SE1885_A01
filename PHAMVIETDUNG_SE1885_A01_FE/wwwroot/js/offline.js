@@ -6,10 +6,16 @@
         isOnline: navigator.onLine,
         cachedData: {},
 
+        // Initialize on DOM ready
         init: function () {
             this.bindEvents();
+            this.setupInterceptors();
             this.updateUI();
             this.loadCachedData();
+            // Initial check
+            if (this.isOnline) {
+                this.checkConnection();
+            }
         },
 
         bindEvents: function () {
@@ -17,16 +23,74 @@
             window.addEventListener('offline', () => this.handleOffline());
         },
 
+        setupInterceptors: function () {
+            const self = this;
+
+            // 1. Intercept Fetch API
+            const originalFetch = window.fetch;
+            window.fetch = function () {
+                return originalFetch.apply(this, arguments)
+                    .then(response => {
+                        // If successful response and we were offline, check if we should go online
+                        if (!self.isOnline && response.ok) {
+                            self.handleOnline();
+                        }
+                        return response;
+                    })
+                    .catch(error => {
+                        // TypeError represents network error
+                        if (error instanceof TypeError) {
+                            console.warn('Fetch error detected (Offline?):', error);
+                            self.handleOffline();
+                        }
+                        throw error;
+                    });
+            };
+
+            // 2. Intercept jQuery AJAX (if available)
+            if (window.jQuery) {
+                $(document).ajaxError(function (event, jqXHR, settings, thrownError) {
+                    // status 0 usually means no connection / cors error / server down
+                    if (jqXHR.status === 0) {
+                        console.warn('jQuery AJAX error detected (Offline/Server Down):', thrownError);
+                        self.handleOffline();
+                    }
+                });
+
+                $(document).ajaxSuccess(function () {
+                    if (!self.isOnline) {
+                        self.handleOnline();
+                    }
+                });
+            }
+        },
+
+        checkConnection: function () {
+            // Simple ping to check if server is actually reachable
+            // We use a HEAD request to a static file or lightweight endpoint
+            fetch('/favicon.ico', { method: 'HEAD', cache: 'no-cache' })
+                .then(() => {
+                    if (!this.isOnline) this.handleOnline();
+                })
+                .catch(() => {
+                    if (this.isOnline) this.handleOffline();
+                });
+        },
+
         handleOnline: function () {
+            if (this.isOnline) return; // Already online
+            console.log('Online Mode Restored');
             this.isOnline = true;
             this.updateUI();
             this.showToast('You are back online!', 'success');
         },
 
         handleOffline: function () {
+            if (!this.isOnline) return; // Already offline
+            console.log('Offline Mode Triggered');
             this.isOnline = false;
             this.updateUI();
-            this.showToast('You are offline. Some features may be limited.', 'warning');
+            this.showToast('Connection lost. Offline Mode enabled.', 'warning');
         },
 
         updateUI: function () {
@@ -35,7 +99,12 @@
 
             // Show/hide offline banner
             if (banner) {
-                banner.style.display = this.isOnline ? 'none' : 'block';
+                if (!this.isOnline) {
+                    banner.style.display = 'block';
+                    banner.innerHTML = '<strong>Offline Mode</strong> - Server unreachable. Features disabled.';
+                } else {
+                    banner.style.display = 'none';
+                }
             }
 
             // Enable/disable CRUD buttons
@@ -80,14 +149,14 @@
         },
 
         loadCachedData: function () {
-            // Load any cached data on page load if offline
-            if (!this.isOnline) {
-                const newsCache = this.getCachedData('news_list');
-                if (newsCache) {
-                    console.log('Loaded cached news data');
-                    // Trigger custom event for views to handle
-                    window.dispatchEvent(new CustomEvent('offlineDataLoaded', { detail: newsCache }));
-                }
+            const newsCache = this.getCachedData('news_list');
+
+            // Only broadcast cache if we are offline OR if we want to support "Stale-While-Revalidate" UI
+            // Ideally, we check connectivity first. 
+            // If offline, we MUST load cache.
+            if (!this.isOnline && newsCache) {
+                console.log('Loaded cached news data (Offline)');
+                window.dispatchEvent(new CustomEvent('offlineDataLoaded', { detail: newsCache }));
             }
         },
 
@@ -99,7 +168,7 @@
             const bgClass = type === 'success' ? 'bg-success' : 'bg-warning';
 
             const toastHtml = `
-                <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert">
+                <div id="${toastId}" class="toast align-items-center text-white border-0" style="background-color: #198754;" role="alert">
                     <div class="d-flex">
                         <div class="toast-body">
                             <i class="bi bi-${type === 'success' ? 'wifi' : 'wifi-off'} me-2"></i>
@@ -129,6 +198,14 @@
 
         getStatus: function () {
             return this.isOnline;
+        },
+
+        // Manual trigger for testing
+        triggerOffline: function () {
+            this.handleOffline();
+        },
+        triggerOnline: function () {
+            this.handleOnline();
         }
     };
 

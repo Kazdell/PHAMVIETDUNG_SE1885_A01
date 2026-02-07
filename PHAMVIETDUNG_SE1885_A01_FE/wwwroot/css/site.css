@@ -3,25 +3,33 @@
 
 :root {
     /* Color Palette - Slate & Blue */
-    --primary-color: #2563eb;       /* Royal Blue */
+    --primary-color: #2563eb;
+    /* Royal Blue */
     --primary-hover: #1d4ed8;
-    --secondary-color: #64748b;     /* Slate 500 */
-    --success-color: #10b981;       /* Emerald 500 */
-    --danger-color: #ef4444;        /* Red 500 */
-    
-    --bg-body: #f8fafc;             /* Slate 50 */
+    --secondary-color: #64748b;
+    /* Slate 500 */
+    --success-color: #10b981;
+    /* Emerald 500 */
+    --danger-color: #ef4444;
+    /* Red 500 */
+
+    --bg-body: #f8fafc;
+    /* Slate 50 */
     --bg-surface: #ffffff;
-    
-    --text-main: #0f172a;           /* Slate 900 */
-    --text-muted: #64748b;          /* Slate 500 */
-    
-    --border-color: #e2e8f0;        /* Slate 200 */
-    
+
+    --text-main: #0f172a;
+    /* Slate 900 */
+    --text-muted: #64748b;
+    /* Slate 500 */
+
+    --border-color: #e2e8f0;
+    /* Slate 200 */
+
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    
+
     /* Radius */
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
@@ -46,7 +54,8 @@ a:hover {
 
 /* Navbar Modernization */
 .navbar {
-    background-color: rgba(255, 255, 255, 0.8) !important; /* Glassmorphism base */
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    /* Glassmorphism base */
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border-color) !important;
     box-shadow: var(--shadow-sm);
@@ -67,7 +76,8 @@ a:hover {
 }
 
 .nav-link:hover {
-    background-color: rgba(37, 99, 235, 0.1); /* Light blue bg */
+    background-color: rgba(37, 99, 235, 0.1);
+    /* Light blue bg */
     color: var(--primary-color) !important;
 }
 
@@ -98,7 +108,8 @@ a:hover {
     box-shadow: var(--shadow-sm);
     background-color: var(--bg-surface);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    overflow: hidden; /* For image zoom effect */
+    overflow: hidden;
+    /* For image zoom effect */
 }
 
 .card:hover {
@@ -119,7 +130,8 @@ a:hover {
 }
 
 .table thead th {
-    background-color: #f1f5f9; /* Slate 100 */
+    background-color: #f1f5f9;
+    /* Slate 100 */
     color: var(--text-muted);
     font-weight: 600;
     text-transform: uppercase;
@@ -137,35 +149,43 @@ a:hover {
 }
 
 /* Badges */
+/* Badges and Background Utilities - Standardized to Solid Colors */
 .badge {
     padding: 0.5em 0.75em;
     font-weight: 600;
-    border-radius: 9999px; /* Pill shape */
+    border-radius: 9999px;
+    /* Pill shape */
 }
 
+/* Update to Solid Colors for better contrast as requested */
 .bg-info {
-    background-color: #e0f2fe !important; /* Sky 100 */
-    color: #0369a1; /* Sky 700 */
+    background-color: #0dcaf0 !important;
+    /* Bootstrap Info Cyan */
+    color: #ffffff;
 }
 
 .bg-primary {
-    background-color: #dbeafe !important; /* Blue 100 */
-    color: #1d4ed8; /* Blue 700 */
+    background-color: var(--primary-color) !important;
+    /* #2563eb */
+    color: #ffffff;
 }
 
 .bg-secondary {
-    background-color: #f1f5f9 !important; /* Slate 100 */
-    color: #475569; /* Slate 600 */
+    background-color: var(--secondary-color) !important;
+    /* #64748b */
+    color: #ffffff;
 }
 
 .bg-danger {
-    background-color: #fee2e2 !important; /* Red 100 */
-    color: #b91c1c; /* Red 700 */
+    background-color: var(--danger-color) !important;
+    /* #ef4444 */
+    color: #ffffff;
 }
 
 .bg-success {
-    background-color: #dcfce7 !important; /* Green 100 */
-    color: #15803d; /* Green 700 */
+    background-color: #198754 !important;
+    /* Bootstrap Success Dark Green */
+    color: #ffffff;
 }
 
 /* Footer */
@@ -194,7 +214,7 @@ a:hover {
 }
 
 .hero-overlay {
-    background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 100%);
     position: absolute;
     bottom: 0;
     left: 0;
@@ -208,7 +228,7 @@ a:hover {
     font-weight: 800;
     margin-bottom: 0.5rem;
     color: white;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Form Controls */

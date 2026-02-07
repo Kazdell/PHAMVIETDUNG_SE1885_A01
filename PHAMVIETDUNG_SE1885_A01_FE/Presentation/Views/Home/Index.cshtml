@@ -94,3 +94,72 @@ else
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Save data to cache when online
+            if (OfflineManager.getStatus()) {
+                const newsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+                OfflineManager.saveToCache('news_list', newsData);
+                console.log('News data cached successfully');
+            }
+
+            // 2. Load data from cache when offline
+            window.addEventListener('offlineDataLoaded', function(e) {
+                const data = e.detail;
+                if (!data || data.length === 0) return;
+
+                const container = document.querySelector('.row.g-4');
+                if (!container) return; // Should not happen
+
+                // Clear existing content (which might be "No news available" or partial)
+                // Actually, we should probably only replace if the current view is empty or shows error
+                // But for simplicity, let's re-render the grid
+                
+                let html = '<div class="col-12 mb-2"><h3 class="fw-bold border-bottom pb-2">Latest Stories (Offline Cache)</h3></div>';
+                
+                data.forEach(item => {
+                    const cardImage = item.NewsImage 
+                        ? (item.NewsImage.startsWith("http") ? item.NewsImage : `http://localhost:5000${item.NewsImage}`)
+                        : `https://picsum.photos/seed/${item.NewsArticleId}/400/250`;
+                        
+                    const categoryName = item.Category ? item.Category.CategoryName : "News";
+                    const authorName = item.CreatedBy ? item.CreatedBy.AccountName : "System";
+                    const dateStr = item.CreatedDate ? new Date(item.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit' }) : "";
+
+                    html += `
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm hover-lift overflow-hidden">
+                            <a href="/Home/Details/${item.NewsArticleId}">
+                                <img src="${cardImage}" alt="${item.NewsTitle}" class="card-img-top" style="height: 180px; object-fit: cover;" />
+                            </a>
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-light text-primary border">${categoryName}</span>
+                                    <small class="text-muted">${dateStr}</small>
+                                </div>
+                                <h5 class="card-title fw-bold mb-3">
+                                    <a href="/Home/Details/${item.NewsArticleId}" class="text-dark text-decoration-none stretched-link">
+                                        ${item.NewsTitle}
+                                    </a>
+                                </h5>
+                                <p class="card-text text-muted flex-grow-1 text-truncate">${item.Headline || ''}</p>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 pt-0 pb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px;">
+                                        <i class="bi bi-person-fill text-white" style="font-size: 0.75rem;"></i>
+                                    </div>
+                                    <small class="text-muted">By ${authorName}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+
+                container.innerHTML = html;
+            });
+        });
+    </script>
+}
