@@ -1,4 +1,5 @@
 using FUNewsManagementSystem.Client.Infrastructure;
+using PHAMVIETDUNG_SE1885_A01_FE.Infrastructure.Hubs;
 using Polly;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,7 @@ builder.Services.AddControllersWithViews()
         options.ViewLocationFormats.Add("/Presentation/Views/{1}/{0}.cshtml");
         options.ViewLocationFormats.Add("/Presentation/Views/Shared/{0}.cshtml");
     });
+builder.Services.AddSignalR();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<AuthHeaderHandler>();
@@ -48,5 +50,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHub<DashboardHub>("/hubs/admindashboard");
 
 app.Run();

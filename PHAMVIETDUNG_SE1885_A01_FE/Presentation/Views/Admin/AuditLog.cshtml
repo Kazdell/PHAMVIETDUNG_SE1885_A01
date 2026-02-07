@@ -1,0 +1,275 @@
+@model PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.AuditLogPagedResult
+@{
+    ViewData["Title"] = "Audit Log";
+    var entities = ViewBag.Entities as List<string> ?? new List<string>();
+    var users = ViewBag.Users as List<string> ?? new List<string>();
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-clock-history me-2"></i>Audit Log</h2>
+            <p class="text-muted mb-0">Track all data changes in the system</p>
+        </div>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@ViewBag.Error
+        </div>
+    }
+
+    <!-- Filters -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form id="filterForm" method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-medium">User Email</label>
+                    <select name="userEmail" id="userEmailFilter" class="form-select">
+                        <option value="">All Users</option>
+                        @foreach (var user in users)
+                        {
+                            <option value="@user" selected="@(ViewBag.SelectedUser == user)">@user</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-medium">Entity Type</label>
+                    <select name="entityType" id="entityTypeFilter" class="form-select">
+                        <option value="">All Entities</option>
+                        @foreach (var entity in entities)
+                        {
+                            <option value="@entity" selected="@(ViewBag.SelectedEntity == entity)">@entity</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-medium">From Date</label>
+                    <input type="date" name="fromDate" class="form-control" value="@ViewBag.FromDate" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-medium">To Date</label>
+                    <input type="date" name="toDate" class="form-control" value="@ViewBag.ToDate" />
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary me-2"><i class="bi bi-funnel me-1"></i>Filter</button>
+                    <a asp-action="AuditLog" class="btn btn-outline-secondary"><i class="bi bi-x-circle me-1"></i>Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <span class="fw-bold">Showing @Model.Data.Count of @Model.TotalCount records</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Entity</th>
+                        <th>Record ID</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Data.Any())
+                    {
+                        @foreach (var log in Model.Data)
+                        {
+                            var actionClass = log.Action switch
+                            {
+                                "Create" => "bg-success-subtle text-success",
+                                "Update" => "bg-warning-subtle text-warning",
+                                "Delete" => "bg-danger-subtle text-danger",
+                                _ => "bg-secondary-subtle text-secondary"
+                            };
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="fw-medium">@log.Timestamp.ToString("yyyy-MM-dd")</span>
+                                    <br /><small class="text-muted">@log.Timestamp.ToString("HH:mm:ss")</small>
+                                </td>
+                                <td>@log.UserEmail</td>
+                                <td><span class="badge @actionClass">@log.Action</span></td>
+                                <td><code>@log.TableName</code></td>
+                                <td><code>@log.RecordID</code></td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(log.Details))
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-info" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#detailsModal"
+                                                data-details="@log.Details">
+                                            <i class="bi bi-eye"></i> View
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                                No audit logs found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="card-footer bg-white py-3">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item @(Model.Page == 1 ? "disabled" : "")">
+                            <a class="page-link" href="?page=@(Model.Page - 1)&userEmail=@ViewBag.SelectedUser&entityType=@ViewBag.SelectedEntity">Previous</a>
+                        </li>
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.Page ? "active" : "")">
+                                <a class="page-link" href="?page=@i&userEmail=@ViewBag.SelectedUser&entityType=@ViewBag.SelectedEntity">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.Page == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="?page=@(Model.Page + 1)&userEmail=@ViewBag.SelectedUser&entityType=@ViewBag.SelectedEntity">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Details Modal - GitHub-style Diff View -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title"><i class="bi bi-git me-2"></i>Change Comparison</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <!-- Old Values (Left) -->
+                    <div class="col-6 border-end">
+                        <div class="diff-header bg-danger-subtle text-danger px-3 py-2 fw-bold border-bottom">
+                            <i class="bi bi-dash-circle me-1"></i> Before (Old)
+                        </div>
+                        <div id="oldContent" class="diff-content p-3" style="max-height: 500px; overflow: auto; font-family: monospace; font-size: 13px;"></div>
+                    </div>
+                    <!-- New Values (Right) -->
+                    <div class="col-6">
+                        <div class="diff-header bg-success-subtle text-success px-3 py-2 fw-bold border-bottom">
+                            <i class="bi bi-plus-circle me-1"></i> After (New)
+                        </div>
+                        <div id="newContent" class="diff-content p-3" style="max-height: 500px; overflow: auto; font-family: monospace; font-size: 13px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .diff-line { padding: 2px 8px; border-radius: 4px; margin: 2px 0; display: block; }
+    .diff-added { background-color: #d4edda; color: #155724; }
+    .diff-removed { background-color: #f8d7da; color: #721c24; }
+    .diff-unchanged { background-color: #f8f9fa; color: #495057; }
+    .diff-key { font-weight: bold; color: #6f42c1; }
+</style>
+
+@section Scripts {
+    <script>
+        document.getElementById('detailsModal').addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var details = button.getAttribute('data-details');
+            
+            var oldContainer = document.getElementById('oldContent');
+            var newContainer = document.getElementById('newContent');
+            
+            oldContainer.innerHTML = '';
+            newContainer.innerHTML = '';
+            
+            try {
+                var parsed = JSON.parse(details);
+                var oldData = parsed.Old || {};
+                var newData = parsed.New || {};
+                
+                // Get all unique keys
+                var allKeys = new Set([...Object.keys(oldData), ...Object.keys(newData)]);
+                
+                allKeys.forEach(function(key) {
+                    var oldVal = oldData[key];
+                    var newVal = newData[key];
+                    var oldStr = oldVal !== undefined ? JSON.stringify(oldVal) : '';
+                    var newStr = newVal !== undefined ? JSON.stringify(newVal) : '';
+                    
+                    var oldLine = document.createElement('div');
+                    var newLine = document.createElement('div');
+                    
+                    oldLine.className = 'diff-line';
+                    newLine.className = 'diff-line';
+                    
+                    if (oldStr === newStr) {
+                        // Unchanged
+                        oldLine.className += ' diff-unchanged';
+                        newLine.className += ' diff-unchanged';
+                        oldLine.innerHTML = '<span class="diff-key">' + key + ':</span> ' + escapeHtml(oldStr);
+                        newLine.innerHTML = '<span class="diff-key">' + key + ':</span> ' + escapeHtml(newStr);
+                    } else if (!oldStr && newStr) {
+                        // Added
+                        oldLine.className += ' diff-unchanged';
+                        oldLine.innerHTML = '<span class="text-muted">-</span>';
+                        newLine.className += ' diff-added';
+                        newLine.innerHTML = '<i class="bi bi-plus"></i> <span class="diff-key">' + key + ':</span> ' + escapeHtml(newStr);
+                    } else if (oldStr && !newStr) {
+                        // Removed
+                        oldLine.className += ' diff-removed';
+                        oldLine.innerHTML = '<i class="bi bi-dash"></i> <span class="diff-key">' + key + ':</span> ' + escapeHtml(oldStr);
+                        newLine.className += ' diff-unchanged';
+                        newLine.innerHTML = '<span class="text-muted">-</span>';
+                    } else {
+                        // Changed
+                        oldLine.className += ' diff-removed';
+                        oldLine.innerHTML = '<i class="bi bi-dash"></i> <span class="diff-key">' + key + ':</span> ' + escapeHtml(oldStr);
+                        newLine.className += ' diff-added';
+                        newLine.innerHTML = '<i class="bi bi-plus"></i> <span class="diff-key">' + key + ':</span> ' + escapeHtml(newStr);
+                    }
+                    
+                    oldContainer.appendChild(oldLine);
+                    newContainer.appendChild(newLine);
+                });
+                
+                if (allKeys.size === 0) {
+                    oldContainer.innerHTML = '<div class="text-muted text-center py-4">No data available</div>';
+                    newContainer.innerHTML = '<div class="text-muted text-center py-4">No data available</div>';
+                }
+                
+            } catch (e) {
+                oldContainer.innerHTML = '<pre class="text-muted">' + escapeHtml(details) + '</pre>';
+                newContainer.innerHTML = '<pre class="text-muted">Unable to parse diff</pre>';
+            }
+        });
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+}

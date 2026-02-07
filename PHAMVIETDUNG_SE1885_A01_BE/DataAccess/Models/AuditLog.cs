@@ -7,7 +7,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.DataAccess.Models;
 public class AuditLog
 {
     [Key]
-    public int Id { get; set; }
+    public int AuditLogID { get; set; }
 
     [Required]
     [StringLength(100)]
@@ -15,16 +15,16 @@ public class AuditLog
 
     [Required]
     [StringLength(50)]
-    public string Action { get; set; } = null!; // Create, Update, Delete
+    public string Action { get; set; } = null!;
 
     [Required]
-    [StringLength(100)]
-    public string EntityName { get; set; } = null!;
+    [StringLength(50)]
+    public string TableName { get; set; } = null!;
 
-    public string? EntityId { get; set; }
+    [StringLength(50)]
+    public string? RecordID { get; set; }
 
     public DateTime Timestamp { get; set; }
 
-    public string? OldValues { get; set; } // JSON
-    public string? NewValues { get; set; } // JSON
+    public string? Details { get; set; }
 }

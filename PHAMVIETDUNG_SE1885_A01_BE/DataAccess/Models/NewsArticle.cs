@@ -28,6 +28,11 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.DataAccess.Models
         [StringLength(400)]
         public string? NewsSource { get; set; }
 
+        [StringLength(400)]
+        public string? NewsImage { get; set; }
+
+        public int ViewCount { get; set; } = 0;
+
         public short? CategoryId { get; set; }
 
         public bool? NewsStatus { get; set; } 

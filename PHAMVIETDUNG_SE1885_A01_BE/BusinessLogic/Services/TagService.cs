@@ -28,7 +28,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
         {
             if (_repository.GetAll().Any(t => t.TagName.ToLower() == tag.TagName.ToLower()))
             {
-                throw new Exception("Tag name already exists.");
+                throw new Exception(Common.SystemMessages.GetMessage(Common.SystemMessages.DuplicateTag));
             }
             tag.TagId = _repository.GetMaxTagId() + 1;
             _repository.Insert(tag);
@@ -43,7 +43,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
                 {
                      if (_repository.GetAll().Any(t => t.TagName.ToLower() == tag.TagName.ToLower()))
                     {
-                        throw new Exception("Tag name already exists.");
+                        throw new Exception(Common.SystemMessages.GetMessage(Common.SystemMessages.DuplicateTag));
                     }
                 }
                 existing.TagName = tag.TagName;
@@ -57,7 +57,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
              // Rule: "A tag cannot be deleted if it is referenced in NewsTag"
             if (_newsTagRepo.GetAll().Any(nt => nt.TagId == id))
             {
-                throw new Exception("Cannot delete tag because it is used in news articles.");
+                throw new Exception(Common.SystemMessages.GetMessage(Common.SystemMessages.UsedTagDeleteError));
             }
 
             _repository.Delete(id);

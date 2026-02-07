@@ -44,7 +44,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
         {
             if (_repository.GetAll().Any(c => c.CategoryName.ToLower() == category.CategoryName.ToLower()))
             {
-                throw new Exception("Category name already exists.");
+                throw new Exception(Common.SystemMessages.GetMessage(Common.SystemMessages.DuplicateCategory));
             }
 
             _repository.Insert(category);
@@ -59,7 +59,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
                 {
                     if (_repository.GetAll().Any(c => c.CategoryName.ToLower() == category.CategoryName.ToLower()))
                     {
-                        throw new Exception("Category name already exists.");
+                        throw new Exception(Common.SystemMessages.GetMessage(Common.SystemMessages.DuplicateCategory));
                     }
                 }
                 existing.CategoryName = category.CategoryName;
@@ -75,7 +75,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             // Rule: "delete action will delete an item in the case this item is not belong to any news articles"
             if (_newsRepo.GetAll().Any(n => n.CategoryId == id))
             {
-                throw new Exception("Cannot delete category because it is used by news articles.");
+                throw new Exception(Common.SystemMessages.GetMessage(Common.SystemMessages.UsedCategoryDeleteError));
             }
              _repository.Delete((short)id);
         }

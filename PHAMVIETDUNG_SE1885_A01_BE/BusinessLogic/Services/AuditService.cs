@@ -19,15 +19,20 @@ public class AuditService : IAuditService
 
     public async Task LogActionAsync(string userEmail, string action, string entityName, string entityId, object? oldValues, object? newValues)
     {
+        var detailsObj = new
+        {
+            Old = oldValues,
+            New = newValues
+        };
+
         var log = new AuditLog
         {
             UserEmail = userEmail,
             Action = action,
-            EntityName = entityName,
-            EntityId = entityId,
+            TableName = entityName,
+            RecordID = entityId,
             Timestamp = DateTime.UtcNow,
-            OldValues = oldValues != null ? JsonSerializer.Serialize(oldValues) : null,
-            NewValues = newValues != null ? JsonSerializer.Serialize(newValues) : null
+            Details = JsonSerializer.Serialize(detailsObj)
         };
 
         _context.AuditLogs.Add(log);

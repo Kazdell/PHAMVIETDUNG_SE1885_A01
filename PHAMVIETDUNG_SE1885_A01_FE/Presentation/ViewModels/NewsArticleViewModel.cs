@@ -22,6 +22,11 @@ public class NewsArticleViewModel
     [StringLength(400)]
     public string? NewsSource { get; set; }
 
+    [StringLength(400)]
+    public string? NewsImage { get; set; }
+
+    public IFormFile? ImageFile { get; set; }
+
     [Required]
     public short? CategoryId { get; set; }
     

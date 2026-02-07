@@ -1,0 +1,11 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  PHAMVIETDUNG_SE1885_A01_FE -> C:\Users\ACER\source\repos\PRN232\PHAMVIETDUNG_SE1885_A01\PHAMVIETDUNG_SE1885_A01_FE\bin\Debug\net8.0\PHAMVIETDUNG_SE1885_A01_FE.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.20
+
+Workload updates are available. Run `dotnet workload list` for more information.

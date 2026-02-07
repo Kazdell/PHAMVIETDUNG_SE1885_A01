@@ -60,7 +60,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             // Validation: Duplicate email
             if (_repository.GetByEmail(account.AccountEmail) != null)
             {
-                 throw new Exception("Email already exists.");
+                 throw new Exception(Common.SystemMessages.GetMessage(Common.SystemMessages.DuplicateEmail));
             }
 
             // Manual ID Generation
@@ -79,7 +79,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
              if (existing.AccountEmail != account.AccountEmail)
              {
                  if(_repository.GetByEmail(account.AccountEmail) != null)
-                    throw new Exception("Email already exists.");
+                    throw new Exception(Common.SystemMessages.GetMessage(Common.SystemMessages.DuplicateEmail));
              }
              
              // Map properties to existing tracked entity
@@ -100,7 +100,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             // Rule: "an account cannot be deleted if it has created any record in NewsArticle.CreatedByID"
             if (_newsRepo.GetAll().Any(n => n.CreatedById == id))
             {
-                 throw new Exception("Cannot delete account because they have created news articles.");
+                 throw new Exception(Common.SystemMessages.GetMessage(Common.SystemMessages.AccountWithArticlesDeleteError));
             }
             _repository.Delete((short)id);
         }

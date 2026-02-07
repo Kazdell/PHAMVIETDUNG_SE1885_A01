@@ -1,53 +1,32 @@
 @model IEnumerable<PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.SystemAccountViewModel>
 
 @{
-    ViewData["Title"] = "Account Management";
+    ViewData["Title"] = "Manage Accounts";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="h3 mb-1">Account Management</h1>
-        <p class="text-muted mb-0">Manage system users and roles</p>
+        <h1 class="h3 mb-1">Manage Accounts</h1>
+        <p class="text-muted mb-0">Create, edit and remove system accounts</p>
     </div>
-    <button type="button" onclick="loadModal('@Url.Action("Create", "Admin")', 'Create New Account')" class="btn btn-primary d-flex align-items-center gap-2 px-4 shadow-sm">
-        <i class="bi bi-person-plus"></i> 
-        <span>New Account</span>
-    </button>
+    <div class="d-flex gap-2">
+        <input type="text" id="searchInput" class="form-control rounded" placeholder="Search accounts..." onkeyup="filterAccounts(1)">
+        <select id="roleFilter" class="form-select rounded" onchange="filterAccounts(1)" style="width: 150px;">
+            <option value="">All Roles</option>
+            <option value="0">Admin</option>
+            <option value="1">Staff</option>
+            <option value="2">Lecturer</option>
+        </select>
+        <button type="button" onclick="loadModal('@Url.Action("Create", "Admin")', 'Create System Account')" class="btn btn-primary d-flex align-items-center gap-2 px-4 shadow-sm text-nowrap rounded">
+            <i class="bi bi-person-plus"></i>
+            <span>New Account</span>
+        </button>
+    </div>
 </div>
 
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-
 <div class="card shadow-sm border-0 mb-4">
-    <div class="card-body bg-light rounded-top border-bottom">
-        <div class="row g-3">
-             <div class="col-md-5">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" id="searchKeyword" class="form-control border-start-0 ps-0" placeholder="Search by name or email..." onkeyup="debounceFilter()">
-                </div>
-            </div>
-             <div class="col-md-3">
-                <select id="searchRole" class="form-select" onchange="filterAccounts(1)">
-                    <option value="">All Roles</option>
-                    <option value="0">Admin</option>
-                    <option value="1">Staff</option>
-                    <option value="2">Lecturer</option>
-                </select>
-            </div>
-             <div class="col-md-2">
-                <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">Reset</button>
-            </div>
-        </div>
-    </div>
-    
     <div id="accountTableContainer" class="card-body p-0">
-          <partial name="_AccountTablePartial" model="Model" />
+        <partial name="_AccountTablePartial" model="Model" />
     </div>
 </div>
 
@@ -58,29 +37,72 @@
 
 @section Scripts {
     <script>
-        let debounceTimer;
-
-        function debounceFilter() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => filterAccounts(1), 500);
-        }
-
         function filterAccounts(page) {
-            const keyword = document.getElementById('searchKeyword').value;
-             const role = document.getElementById('searchRole').value;
-            const url = `@Url.Action("FilterAccounts", "Admin")?page=${page}&keyword=${encodeURIComponent(keyword)}&role=${role}`;
-
+            const search = $('#searchInput').val();
+            const role = $('#roleFilter').val();
+            const url = `@Url.Action("FilterAccounts", "Admin")?page=${page}&search=${search}&role=${role}`;
+            
             $.get(url, function (data) {
                 $('#accountTableContainer').html(data);
             }).fail(function () {
-                alert('Failed to load data.');
+                console.error('Failed to load data.');
+                // alert('Failed to load data.'); // Optional to avoid spam on keyup
             });
         }
+        
+        // Re-use loadModal from _Layout or define here if needed.
+        // Assuming loadModal is global or defined in _Layout. 
+        // If not, we add it just in case, but usually it's in Layout or shared js.
+        // Checking Layout earlier didn't explicitly show it, but Staff pages used it.
+        // Let's add safely.
+        
+        if (typeof loadModal === 'undefined') {
+            window.loadModal = function(url, title) {
+                $.get(url, function (data) {
+                    $('#modal-placeholder').html(data);
+                    
+                    // Update Title if partial doesn't have it or we want to override
+                    const modalEl = document.getElementById('actionModal');
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                    
+                    // Re-bind forms for AJAX info
+                     bindModalForm();
+                     
+                     // Re-parse validation
+                     $.validator.unobtrusive.parse("#actionModal form");
+                });
+            }
+        }
 
-        function resetFilters() {
-            document.getElementById('searchKeyword').value = '';
-            document.getElementById('searchRole').value = '';
-            filterAccounts(1);
+        function bindModalForm() {
+            $('form.modal-form').off('submit').on('submit', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                // Basic validation check
+                if (!form.valid()) return false;
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: form.attr('method'),
+                    data: form.serialize(),
+                    success: function (res) {
+                        if (res.success) {
+                            $('#actionModal').modal('hide');
+                            location.reload(); // Simple reload to refresh table
+                        } else {
+                            // If partial returned (validation error), replace content
+                            $('#modal-placeholder').html(res);
+                            bindModalForm();
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred.');
+                    }
+                });
+            });
         }
     </script>
 }
+
+

@@ -13,7 +13,7 @@
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body p-4">
-            <form asp-action="CreateNews" class="modal-form">
+            <form asp-action="CreateNews" class="modal-form" enctype="multipart/form-data">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 
                 <div class="row">
@@ -28,6 +28,12 @@
                             <label asp-for="Headline" class="control-label fw-semibold mb-1">Headline</label>
                             <textarea asp-for="Headline" class="form-control" rows="2" placeholder="Short summary"></textarea>
                             <span asp-validation-for="Headline" class="text-danger"></span>
+                        </div>
+
+                         <div class="form-group mb-3">
+                            <label asp-for="ImageFile" class="control-label fw-semibold mb-1">Feature Image</label>
+                            <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+                            <span asp-validation-for="ImageFile" class="text-danger"></span>
                         </div>
                         
                          <div class="form-group mb-3 position-relative">
@@ -141,9 +147,12 @@
         var suggestBtn = document.getElementById("btnSuggestTags");
             if(suggestBtn) {
                 suggestBtn.addEventListener("click", function() {
-                    var content = document.getElementById("NewsContent")?.value || "";
-                    if (!content) {
-                        alert("Please enter some content first.");
+                    var form = suggestBtn.closest('form');
+                    var content = form.querySelector('textarea[name="NewsContent"]')?.value || "";
+                    console.log("Sending Content for AI Analysis:", content);
+                    
+                    if (!content || content.length < 10) {
+                        alert("Please enter at least 10 characters of content.");
                         return;
                     }
                     
@@ -157,32 +166,75 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(content)
+                        body: JSON.stringify({ content: content })
                     })
                     .then(response => {
                          if (!response.ok) throw new Error("AI Service failed");
                          return response.json();
                     })
                     .then(tags => {
+                        console.log("AI Tags Received:", tags);
                         var count = 0;
-                        var checkboxes = document.querySelectorAll("input[name='SelectedTagIds']");
+                        var matchedTags = [];
+                        var checkboxes = form.querySelectorAll("input[name='SelectedTagIds']");
+                        
                         checkboxes.forEach(cb => {
-                            var label = document.querySelector("label[for='" + cb.id + "']");
-                            if (label) {
-                                var tagName = label.innerText.toLowerCase();
-                                // Check if tag name contains any of the suggested keywords
-                                var match = tags.some(keyword => tagName.includes(keyword.toLowerCase()));
-                                if (match) {
-                                    cb.checked = true;
-                                    count++;
+                            // Hyper-robust label finding
+                            var labelText = "";
+                            var labelElement = cb.labels ? cb.labels[0] : null;
+                            if (!labelElement) {
+                                labelElement = cb.closest('.form-check')?.querySelector('label');
+                            }
+                            
+                            if (labelElement) {
+                                labelText = labelElement.innerText.trim();
+                                var tagNameFull = labelText.toLowerCase();
+                                var tagWords = tagNameFull.split(/[\s-]+/);
+                                
+                                // Logging every comparison to find the missing link
+                                console.log(`Checking Tag: "${labelText}" against AI suggestions...`);
+
+                                var isMatch = tags.some(keyword => {
+                                    var kw = keyword.toLowerCase().trim();
+                                    if (kw.length < 3) return false;
+                                    
+                                    // 1. Full match or contains
+                                    if (tagNameFull.includes(kw) || kw.includes(tagNameFull)) return true;
+                                    
+                                    // 2. Prefix Match (3-4 chars)
+                                    return tagWords.some(tWord => {
+                                        if (tWord.length < 3) return false;
+                                        var matchLen = Math.min(tWord.length, kw.length, 4);
+                                        return tWord.substring(0, matchLen) === kw.substring(0, matchLen);
+                                    });
+                                });
+
+                                if (isMatch) {
+                                    if (!cb.checked) {
+                                        cb.checked = true;
+                                        count++;
+                                        matchedTags.push(labelText);
+                                        cb.closest('.form-check')?.classList.add('animate__animated', 'animate__flash');
+                                        console.log(`✅ MATCHED: "${labelText}" matched with AI keywords.`);
+                                    } else {
+                                        console.log(`ℹ️ ALREADY CHECKED: "${labelText}" matched but was already selected.`);
+                                    }
+                                } else {
+                                    // Log failure only if verbose needed
+                                    // console.log(`❌ NO MATCH for "${labelText}"`);
                                 }
                             }
                         });
-                        alert("AI suggested " + count + " tags based on your content.");
+
+                        if (count > 0) {
+                            alert("AI matched " + count + " tags: " + matchedTags.join(", "));
+                        } else {
+                            alert("AI processed your content but couldn't find a direct match with your existing tags.");
+                        }
                     })
                     .catch(err => {
                         console.error(err);
-                        alert("Failed to get AI suggestions.");
+                        alert("Failed to get AI suggestions. Check console for details.");
                     })
                     .finally(() => {
                         suggestBtn.innerHTML = originalText;
@@ -190,6 +242,27 @@
                     });
                 });
             }
+        var form = document.querySelector(".modal-form");
+        if (form) {
+            form.addEventListener("submit", function() {
+                var selectedTags = [];
+                var checkboxes = form.querySelectorAll("input[name='SelectedTagIds']:checked");
+                checkboxes.forEach(cb => {
+                    var label = cb.closest('.form-check')?.querySelector('label')?.innerText.trim();
+                    if (label) selectedTags.push(label);
+                });
+
+                var content = form.querySelector('textarea[name="NewsContent"]')?.value || "";
+
+                if (selectedTags.length > 0 && content.length > 50) {
+                    fetch('/Staff/LearnTags', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: content, tags: selectedTags })
+                    }).catch(err => console.error("AI Learning failed", err));
+                }
+            });
+        }
     })();
 </script>
 @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

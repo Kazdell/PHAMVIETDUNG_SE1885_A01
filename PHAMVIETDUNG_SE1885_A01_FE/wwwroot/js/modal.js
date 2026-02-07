@@ -33,25 +33,30 @@ function bindModalForm() {
         e.preventDefault();
         var form = $(this);
         var url = form.attr('action');
-        var formData = form.serialize();
+        var formData = new FormData(this);
 
-        $.post(url, formData, function (response) {
-            if (response.success) {
-                // Close modal
-                var modalEl = document.getElementById('actionModal');
-                var modal = bootstrap.Modal.getInstance(modalEl);
-                modal.hide();
-
-                // Show success message (optional)
-                // alert('Saved successfully'); 
-
-                // Reload page to show changes
-                location.reload();
-            } else {
-                // If it returns HTML (Partial View with errors), replace the modal body
-                // We assume the response IS the partial view content
-                $('#modal-placeholder').html(response);
-                bindModalForm(); // Re-bind for the new form
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    // Close modal
+                    var modalEl = document.getElementById('actionModal');
+                    var modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+                    location.reload();
+                } else {
+                    // If it returns HTML (Partial View with errors), replace the modal body
+                    $('#modal-placeholder').html(response);
+                    bindModalForm(); // Re-bind for the new form
+                }
+            },
+            error: function (xhr, status, error) {
+                 console.error("Submission failed:", error);
+                 alert("An error occurred. Please try again.");
             }
         });
     });

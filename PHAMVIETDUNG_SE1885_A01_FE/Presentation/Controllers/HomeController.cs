@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels;
+using Microsoft.AspNetCore.SignalR;
+using PHAMVIETDUNG_SE1885_A01_FE.Infrastructure.Hubs;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -9,11 +11,13 @@ namespace PHAMVIETDUNG_SE1885_A01_FE.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHubContext<DashboardHub> _hubContext;
 
-        public HomeController(ILogger<HomeController> logger, IHttpClientFactory httpClientFactory)
+        public HomeController(ILogger<HomeController> logger, IHttpClientFactory httpClientFactory, IHubContext<DashboardHub> hubContext)
         {
             _logger = logger;
             _httpClientFactory = httpClientFactory;
+            _hubContext = hubContext;
         }
 
         public async Task<IActionResult> Index()
@@ -45,6 +49,9 @@ namespace PHAMVIETDUNG_SE1885_A01_FE.Controllers
 
             var content = await newsResponse.Content.ReadAsStringAsync();
             var news = JsonSerializer.Deserialize<NewsArticleViewModel>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            // Trigger SignalR Notification for Live View
+            await _hubContext.Clients.All.SendAsync("ReceiveArticleView", id);
 
             // Fetch Related
             var relatedResponse = await client.GetAsync($"/api/NewsArticle/{id}/Related");

@@ -12,6 +12,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
         private readonly IGenericRepository<NewsTag> _newsTagRepo;
         private readonly IAuditService _auditService;
         private readonly IHubContext<BusinessLogic.Hubs.NotificationHub> _hubContext;
+        private readonly IHubContext<BusinessLogic.Hubs.AdminDashboardHub> _adminHub;
         private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor _httpContextAccessor;
 
         public NewsArticleService(
@@ -19,12 +20,14 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             IGenericRepository<NewsTag> newsTagRepo,
             IAuditService auditService,
             IHubContext<BusinessLogic.Hubs.NotificationHub> hubContext,
+            IHubContext<BusinessLogic.Hubs.AdminDashboardHub> adminHub,
             Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
         {
             _repository = repository;
             _newsTagRepo = newsTagRepo;
             _auditService = auditService;
             _hubContext = hubContext;
+            _adminHub = adminHub;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -45,10 +48,17 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
 
         public NewsArticle GetNewsById(string id)
         {
-            return _repository.GetById(id);
+            var news = _repository.GetById(id);
+            if (news != null)
+            {
+                news.ViewCount++;
+                _repository.Update(news);
+                _adminHub.Clients.All.SendAsync("ReceiveArticleView", new { ArticleId = news.NewsArticleId, AuthorId = news.CreatedById });
+            }
+            return news;
         }
 
-        public void CreateNews(NewsArticle news, List<int>? tagIds = null)
+        public async Task CreateNewsAsync(NewsArticle news, List<int>? tagIds = null)
         {
             news.CreatedDate = DateTime.Now;
             news.ModifiedDate = DateTime.Now;
@@ -62,18 +72,22 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
                 }
             }
 
-            // Audit
-            _auditService.LogActionAsync(GetCurrentUserEmail(), "Create", "NewsArticle", news.NewsArticleId, null, news);
+            // Audit (awaited)
+            await _auditService.LogActionAsync(GetCurrentUserEmail(), "Create", "NewsArticle", news.NewsArticleId, null, news);
             
             // Notification
-            _hubContext.Clients.All.SendAsync("ReceiveNotification", $"New Article Published: {news.NewsTitle}");
+            await _hubContext.Clients.All.SendAsync("ReceiveNotification", $"New Article Published: {news.NewsTitle}");
+            await _adminHub.Clients.All.SendAsync("ReceiveNewArticle", new { Title = news.NewsTitle, AuthorId = news.CreatedById, ArticleId = news.NewsArticleId });
         }
 
-        public void UpdateNews(NewsArticle news, List<int>? tagIds = null)
+        public async Task UpdateNewsAsync(NewsArticle news, List<int>? tagIds = null)
         {
             var existing = _repository.GetById(news.NewsArticleId);
             if (existing != null)
             {
+                // Capture old values before update
+                var oldValues = new { existing.NewsTitle, existing.Headline, existing.NewsContent, existing.CategoryId, existing.NewsStatus };
+                
                 existing.NewsTitle = news.NewsTitle;
                 existing.Headline = news.Headline;
                 existing.NewsContent = news.NewsContent;
@@ -85,8 +99,8 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
                 
                 _repository.Update(existing);
 
-                // Audit
-                _auditService.LogActionAsync(GetCurrentUserEmail(), "Update", "NewsArticle", news.NewsArticleId, existing, news);
+                // Audit (awaited)
+                await _auditService.LogActionAsync(GetCurrentUserEmail(), "Update", "NewsArticle", news.NewsArticleId, oldValues, news);
 
                 // Update Tags
                 if (tagIds != null)
@@ -95,8 +109,6 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
                     var currentTags = _newsTagRepo.GetAll().Where(nt => nt.NewsArticleId == news.NewsArticleId).ToList();
                     foreach (var tag in currentTags)
                     {
-                        // Composite key delete workaround: generic repo delete takes object id
-                        // EF Core DbSet.Remove works with entity instance, which GenericRepo does
                          _newsTagRepo.Delete(tag);
                     }
 
@@ -106,11 +118,22 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
                          _newsTagRepo.Insert(new NewsTag { NewsArticleId = news.NewsArticleId, TagId = tagId });
                     }
                 }
+                
+                // Notification
+                await _hubContext.Clients.All.SendAsync("ReceiveArticleUpdate", news.NewsTitle);
             }
         }
 
-        public void DeleteNews(string id)
+        public async Task DeleteNewsAsync(string id)
         {
+            var news = _repository.GetById(id);
+            if (news == null) throw new KeyNotFoundException("Article not found.");
+            
+            if (news.NewsStatus == true)
+            {
+                throw new InvalidOperationException(Common.SystemMessages.GetMessage(Common.SystemMessages.ActiveArticleDeleteError));
+            }
+
             // Manual Cascade Delete for NewsTags
             var tags = _newsTagRepo.GetAll().Where(nt => nt.NewsArticleId == id).ToList();
             foreach (var tag in tags)
@@ -120,8 +143,8 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
 
             _repository.Delete(id);
 
-            // Audit
-             _auditService.LogActionAsync(GetCurrentUserEmail(), "Delete", "NewsArticle", id, null, null);
+            // Audit (awaited)
+            await _auditService.LogActionAsync(GetCurrentUserEmail(), "Delete", "NewsArticle", id, null, null);
         }
 
         public IEnumerable<NewsArticle> SearchNews(string keyword)

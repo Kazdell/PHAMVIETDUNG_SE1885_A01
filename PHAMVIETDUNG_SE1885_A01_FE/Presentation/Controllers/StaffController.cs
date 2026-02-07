@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels;
+using Microsoft.AspNetCore.SignalR;
+using PHAMVIETDUNG_SE1885_A01_FE.Infrastructure.Hubs;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text;
 
 namespace PHAMVIETDUNG_SE1885_A01_FE.Presentation.Controllers;
@@ -21,6 +24,86 @@ public class StaffController : Controller
     }
 
     // ================= CATEGORIES =================
+    public async Task<IActionResult> Dashboard()
+    {
+        if (!IsStaff()) return RedirectToAction("AccessDenied", "Account");
+        var accountId = HttpContext.Session.GetString("AccountId");
+
+        var viewModel = new DashboardViewModel();
+
+        // 1. Get Global Stats from Analytics API
+        var analyticsClient = _httpClientFactory.CreateClient("AnalyticsClient");
+        var analyticsResponse = await analyticsClient.GetAsync("/api/Dashboard");
+        if (analyticsResponse.IsSuccessStatusCode)
+        {
+            var content = await analyticsResponse.Content.ReadAsStringAsync();
+            var globalStats = JsonSerializer.Deserialize<DashboardViewModel>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            viewModel.TotalArticles = globalStats.TotalArticles;
+            viewModel.TotalCategories = globalStats.TotalCategories;
+            viewModel.TotalAuthors = globalStats.TotalAuthors;
+        }
+
+        // 2. Get Personal Stats from Core API using Report Endpoint
+        // We use the Report endpoint which supports filtering by CreatedById
+        var coreClient = _httpClientFactory.CreateClient("CoreClient");
+        // /api/NewsArticle/Report?createdById={accountId}&pageSize=1 (we only need the count)
+        var myReportResponse = await coreClient.GetAsync($"/api/NewsArticle/Report?createdById={accountId}&pageSize=1");
+        
+        if (myReportResponse.IsSuccessStatusCode)
+        {
+             var content = await myReportResponse.Content.ReadAsStringAsync();
+             var result = JsonSerializer.Deserialize<ReportResult>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+             viewModel.MyTotalArticles = result?.TotalRecords ?? 0;
+        }
+
+        return View(viewModel);
+    }
+
+    public class DashboardViewModel
+    {
+        public int TotalArticles { get; set; }
+        public int TotalCategories { get; set; }
+        public int TotalAuthors { get; set; }
+        public int MyTotalArticles { get; set; }
+    }
+
+    public class ReportResult
+    {
+        public int TotalRecords { get; set; }
+        // We don't need other fields for dashboard count
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Export(DateTime? startDate, DateTime? endDate)
+    {
+        if (!IsStaff()) return RedirectToAction("AccessDenied", "Account");
+        
+        var client = _httpClientFactory.CreateClient("AnalyticsClient");
+        var url = $"/api/Export?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}";
+        
+        var response = await client.GetAsync(url);
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsByteArrayAsync();
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"NewsReport_{DateTime.Now:yyyyMMdd}.xlsx");
+        }
+        return BadRequest("Failed to export report.");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetTrendingNews()
+    {
+        if (!IsStaff()) return Unauthorized();
+        var client = _httpClientFactory.CreateClient("AnalyticsClient");
+        var response = await client.GetAsync("/api/Trending");
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            return Content(content, "application/json");
+        }
+        return StatusCode((int)response.StatusCode);
+    }
+
     public async Task<IActionResult> Categories(int page = 1)
     {
         if (!IsStaff()) return RedirectToAction("AccessDenied", "Account");
@@ -33,7 +116,7 @@ public class StaffController : Controller
             var allCategories = JsonSerializer.Deserialize<List<CategoryViewModel>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             
             // Pagination
-            int pageSize = 5;
+            int pageSize = 10;
             int totalRecords = allCategories.Count;
             int totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
             
@@ -187,27 +270,42 @@ public class StaffController : Controller
             return RedirectToAction(nameof(Categories));
         }
         // Handle error
-        var errorContent = await response.Content.ReadAsStringAsync();
-        TempData["ErrorMessage"] = string.IsNullOrEmpty(errorContent) ? "Failed to delete category." : errorContent;
-        if (errorContent.Contains("used by news articles") || errorContent.Contains("REFERENCE constraint"))
-        {
-             TempData["ErrorMessage"] = "This category has articles; cannot delete.";
-        }
+        TempData["ErrorMessage"] = await ExtractErrorMessage(response);
         return RedirectToAction(nameof(Categories));
     }
 
     // ================= NEWS =================
-    public async Task<IActionResult> News()
+    public async Task<IActionResult> News(int page = 1, int? tagId = null)
     {
         if (!IsStaff()) return RedirectToAction("AccessDenied", "Account");
 
+        var accountId = HttpContext.Session.GetString("AccountId");
+        if (string.IsNullOrEmpty(accountId)) return RedirectToAction("Login", "Account");
+
         var client = _httpClientFactory.CreateClient("CoreClient");
-        var response = await client.GetAsync("/api/NewsArticle");
+        // Filter: Created by me OR Updated by me
+        var filter = $"(CreatedById eq {accountId} or UpdatedById eq {accountId})";
+        if (tagId.HasValue)
+        {
+            filter += $" and NewsTags/any(nt: nt/TagId eq {tagId.Value})";
+        }
+
+        var url = $"/api/NewsArticle?$filter={filter}&$orderby=CreatedDate desc&$expand=Category,NewsTags($expand=Tag)";
+        
+        var response = await client.GetAsync(url);
         if (response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync();
             var news = JsonSerializer.Deserialize<List<NewsArticleViewModel>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return View(news);
+            
+            // Client-side pagination (since we fetched filtered list)
+            int pageSize = 5;
+            var pagedNews = news.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)news.Count / pageSize);
+
+            return View(pagedNews);
         }
         return View(new List<NewsArticleViewModel>());
     }
@@ -235,14 +333,17 @@ public class StaffController : Controller
         var client = _httpClientFactory.CreateClient("CoreClient");
         if (ModelState.IsValid)
         {
-            var jsonContent = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
-            var response = await client.PostAsync("/api/NewsArticle", jsonContent);
+            var multipartContent = CreateMultipartContent(model);
+            var response = await client.PostAsync("/api/NewsArticle", multipartContent);
 
             if (response.IsSuccessStatusCode)
             {
+                 // Trigger SignalR Notification
+                 // REMOVED: SignalR Notification is handled by Backend NewsArticleService
                  return Json(new { success = true });
             }
-            ModelState.AddModelError("", "Failed to create news.");
+            var error = await response.Content.ReadAsStringAsync();
+            ModelState.AddModelError("", $"Failed to create news: {error}"); // Capture backend error
         }
         await PrepareViewBag();
         return PartialView("_CreateNewsPartial", model);
@@ -286,17 +387,53 @@ public class StaffController : Controller
         var client = _httpClientFactory.CreateClient("CoreClient");
         if (ModelState.IsValid)
         {
-            var jsonContent = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
-            var response = await client.PutAsync($"/api/NewsArticle/{id}", jsonContent);
+            var multipartContent = CreateMultipartContent(model);
+            var response = await client.PutAsync($"/api/NewsArticle/{id}", multipartContent);
 
             if (response.IsSuccessStatusCode)
             {
                  return Json(new { success = true });
             }
-            ModelState.AddModelError("", "Failed to update news.");
+            var error = await response.Content.ReadAsStringAsync();
+            ModelState.AddModelError("", $"Failed to update news: {error}");
         }
         await PrepareViewBag();
         return PartialView("_EditNewsPartial", model);
+    }
+
+    private MultipartFormDataContent CreateMultipartContent(NewsArticleViewModel model)
+    {
+        var content = new MultipartFormDataContent();
+        
+        if (model.NewsArticleId != null) content.Add(new StringContent(model.NewsArticleId), nameof(model.NewsArticleId));
+        if (model.NewsTitle != null) content.Add(new StringContent(model.NewsTitle), nameof(model.NewsTitle));
+        if (model.Headline != null) content.Add(new StringContent(model.Headline), nameof(model.Headline));
+        if (model.NewsContent != null) content.Add(new StringContent(model.NewsContent), nameof(model.NewsContent));
+        if (model.NewsSource != null) content.Add(new StringContent(model.NewsSource), nameof(model.NewsSource));
+        if (model.NewsImage != null) content.Add(new StringContent(model.NewsImage), nameof(model.NewsImage));
+        
+        if (model.CategoryId.HasValue) content.Add(new StringContent(model.CategoryId.Value.ToString()), nameof(model.CategoryId));
+        if (model.NewsStatus.HasValue) content.Add(new StringContent(model.NewsStatus.Value.ToString()), nameof(model.NewsStatus));
+        if (model.CreatedById.HasValue) content.Add(new StringContent(model.CreatedById.Value.ToString()), nameof(model.CreatedById));
+        if (model.UpdatedById.HasValue) content.Add(new StringContent(model.UpdatedById.Value.ToString()), nameof(model.UpdatedById));
+        
+        // Tags
+        if (model.SelectedTagIds != null)
+        {
+            foreach (var tagId in model.SelectedTagIds)
+            {
+                content.Add(new StringContent(tagId.ToString()), "SelectedTagIds");
+            }
+        }
+
+        // Image File
+        if (model.ImageFile != null)
+        {
+            var streamContent = new StreamContent(model.ImageFile.OpenReadStream());
+            content.Add(streamContent, nameof(model.ImageFile), model.ImageFile.FileName);
+        }
+
+        return content;
     }
 
         public async Task<IActionResult> History(int page = 1)
@@ -357,6 +494,8 @@ public class StaffController : Controller
         {
             return RedirectToAction(nameof(News));
         }
+        
+        TempData["ErrorMessage"] = await ExtractErrorMessage(response);
         return RedirectToAction(nameof(News));
     }
 
@@ -518,6 +657,7 @@ public class StaffController : Controller
         {
             return RedirectToAction(nameof(Tags));
         }
+        TempData["ErrorMessage"] = await ExtractErrorMessage(response);
         return RedirectToAction(nameof(Tags));
     }
 
@@ -626,12 +766,18 @@ public class StaffController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> FilterNews(int page = 1, string keyword = "", int? categoryId = null, bool? status = null)
+    public async Task<IActionResult> FilterNews(int page = 1, string keyword = "", int? categoryId = null, bool? status = null, int? tagId = null)
     {
         if (!IsStaff()) return Unauthorized();
 
+        var accountId = HttpContext.Session.GetString("AccountId");
+        if (string.IsNullOrEmpty(accountId)) return Unauthorized();
+
         var query = new List<string>();
         var filters = new List<string>();
+
+        // Enforce Ownership: Created by me OR Updated by me
+        filters.Add($"(CreatedById eq {accountId} or UpdatedById eq {accountId})");
 
         if (!string.IsNullOrEmpty(keyword))
         {
@@ -652,6 +798,11 @@ public class StaffController : Controller
         if (status.HasValue)
         {
             filters.Add($"NewsStatus eq {status.Value.ToString().ToLower()}");
+        }
+
+        if (tagId.HasValue)
+        {
+            filters.Add($"NewsTags/any(nt: nt/TagId eq {tagId.Value})");
         }
 
         // Sort
@@ -710,7 +861,7 @@ public class StaffController : Controller
             var content = await response.Content.ReadAsStringAsync();
             var allCats = JsonSerializer.Deserialize<List<CategoryViewModel>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            int pageSize = 5;
+            int pageSize = 10;
             var pagedCats = allCats.Skip((page - 1) * pageSize).Take(pageSize).ToList();
             
             ViewBag.CurrentPage = page;
@@ -748,9 +899,10 @@ public class StaffController : Controller
         return PartialView("_TagTablePartial", new List<TagViewModel>());
     }
     [HttpPost]
-    public async Task<IActionResult> SuggestTags([FromBody] string content)
+    public async Task<IActionResult> SuggestTags([FromBody] SuggestTagsRequest request)
     {
         if (!IsStaff()) return Unauthorized();
+        string content = request?.Content ?? "";
         
         var client = _httpClientFactory.CreateClient("AiClient");
         var response = await client.PostAsJsonAsync("/api/suggesttags", new { Content = content });
@@ -763,8 +915,47 @@ public class StaffController : Controller
         return BadRequest();
     }
 
+    [HttpPost]
+    public async Task<IActionResult> LearnTags([FromBody] LearnTagsRequest request)
+    {
+        if (!IsStaff()) return Unauthorized();
+        var client = _httpClientFactory.CreateClient("AiClient");
+        await client.PostAsJsonAsync("/api/suggesttags/learn", request);
+        return Ok();
+    }
+
     private class TagResponse
     {
         public List<string> Tags { get; set; }
+    }
+
+    public class SuggestTagsRequest
+    {
+        public string Content { get; set; }
+    }
+
+    public class LearnTagsRequest
+    {
+        public string Content { get; set; }
+        public List<string> Tags { get; set; }
+    }
+    private async Task<string> ExtractErrorMessage(HttpResponseMessage response)
+    {
+        var errorContent = await response.Content.ReadAsStringAsync();
+        try 
+        {
+             // Try to parse JSON "message" property
+             var json = JsonSerializer.Deserialize<JsonElement>(errorContent);
+             if (json.TryGetProperty("message", out var msg))
+             {
+                 return msg.GetString();
+             }
+             // Fallback to "detail" or other standard fields if necessary, or just raw content
+             return string.IsNullOrWhiteSpace(errorContent) ? "Operation failed." : errorContent;
+        }
+        catch
+        {
+            return string.IsNullOrWhiteSpace(errorContent) ? "An unexpected error occurred." : errorContent;
+        }
     }
 }

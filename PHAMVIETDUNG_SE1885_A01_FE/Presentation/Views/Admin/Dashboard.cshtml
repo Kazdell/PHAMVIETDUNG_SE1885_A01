@@ -111,3 +111,10 @@
         }
     });
 </script>
+    // Admin Dashboard does not seem to have SignalR connection logic in the viewed file.
+    // It only renders charts from ViewBag data.
+    // If there is no SignalR logic, no change needed.
+    // Wait, let's look closer at the file content I viewed.
+    // Lines 48-113: It parses ViewBag.DashboardStats and renders charts.
+    // There is NO SignalR connection code in Admin/Dashboard.cshtml.
+    // So I do not need to edit this file for variable collision.

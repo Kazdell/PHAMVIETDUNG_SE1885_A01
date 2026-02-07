@@ -23,6 +23,12 @@ builder.Services.AddScoped<INewsArticleService, NewsArticleService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IGenericRepository<NewsTag>, GenericRepository<NewsTag>>();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IAiCacheService, AiCacheService>();
+builder.Services.AddHostedService<CacheRefreshWorker>();
+
 builder.Services.AddSignalR();
 builder.Services.AddHttpContextAccessor();
 
@@ -68,9 +74,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
     {
-        builder.AllowAnyOrigin()
+        builder.WithOrigins("http://localhost:5260", "http://localhost:44021", "http://localhost:5000", "http://localhost:5100", "http://localhost:5200")
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 });
 
@@ -82,6 +89,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseStaticFiles(); 
+
+app.UseMiddleware<PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Middleware.GlobalExceptionHandlerMiddleware>();
+app.UseMiddleware<PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Middleware.RequestLoggingMiddleware>();
+
 app.UseCors("AllowAll");
 
 app.UseAuthentication(); // Added
@@ -89,6 +101,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Hubs.NotificationHub>("/hubs/notifications");
+app.MapHub<PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Hubs.AdminDashboardHub>("/hubs/admindashboard");
 
 app.Run();
 

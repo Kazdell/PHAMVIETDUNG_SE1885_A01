@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Models
 {
@@ -21,6 +22,13 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Models
 
         [StringLength(400)]
         public string? NewsSource { get; set; }
+
+        [StringLength(400)]
+        public string? NewsImage { get; set; }
+
+        public IFormFile? ImageFile { get; set; }
+
+        public int ViewCount { get; set; }
 
         public short? CategoryId { get; set; }
 
