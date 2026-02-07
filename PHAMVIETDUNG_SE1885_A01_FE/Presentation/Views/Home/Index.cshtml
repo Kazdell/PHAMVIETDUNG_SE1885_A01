@@ -9,7 +9,10 @@
 <!-- Hero Section -->
 @if (featured != null)
 {
-    <div class="card hero-card bg-dark text-white mb-5 shadow-lg border-0" style="min-height: 400px; background-image: url('https://picsum.photos/1200/600'); background-size: cover; background-position: center;">
+    var heroImage = !string.IsNullOrEmpty(featured.NewsImage) 
+        ? (featured.NewsImage.StartsWith("http") ? featured.NewsImage : $"http://localhost:5000{featured.NewsImage}") 
+        : $"https://picsum.photos/seed/{featured.NewsArticleId}/1200/600";
+    <div class="card hero-card bg-dark text-white mb-5 shadow-lg border-0" style="min-height: 400px; background-image: url('@heroImage'); background-size: cover; background-position: center;">
         <div class="hero-overlay">
             <h1 class="hero-title">@featured.NewsTitle</h1>
             <p class="lead">@featured.Headline</p>
@@ -35,11 +38,17 @@ else
     {
         @foreach (var item in others)
         {
+            var cardImage = !string.IsNullOrEmpty(item.NewsImage) 
+                ? (item.NewsImage.StartsWith("http") ? item.NewsImage : $"http://localhost:5000{item.NewsImage}") 
+                : $"https://picsum.photos/seed/{item.NewsArticleId}/400/250";
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm hover-lift">
+                <div class="card h-100 border-0 shadow-sm hover-lift overflow-hidden">
+                    <a asp-action="Details" asp-route-id="@item.NewsArticleId">
+                        <img src="@cardImage" alt="@item.NewsTitle" class="card-img-top" style="height: 180px; object-fit: cover;" />
+                    </a>
                     <div class="card-body d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge bg-light text-primary border">News</span>
+                            <span class="badge bg-light text-primary border">@(item.Category?.CategoryName ?? "News")</span>
                             <small class="text-muted">@item.CreatedDate?.ToString("MMM dd")</small>
                         </div>
                         <h5 class="card-title fw-bold mb-3">
@@ -65,8 +74,10 @@ else
                     </div>
                     <div class="card-footer bg-transparent border-0 pt-0 pb-3">
                         <div class="d-flex align-items-center">
-                            <div class="rounded-circle bg-gray-200 me-2" style="width: 24px; height: 24px;"></div>
-                            <small class="text-muted">By System</small>
+                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px;">
+                                <i class="bi bi-person-fill text-white" style="font-size: 0.75rem;"></i>
+                            </div>
+                            <small class="text-muted">By @(item.CreatedBy?.AccountName ?? "System")</small>
                         </div>
                     </div>
                 </div>

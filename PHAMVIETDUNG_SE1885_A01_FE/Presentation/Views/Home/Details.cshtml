@@ -29,9 +29,15 @@
                     </div>
                 </header>
                 
-                <!-- Preview Image (Placeholder) -->
-
-                
+                <!-- Feature Image -->
+                @{
+                    var detailImage = !string.IsNullOrEmpty(Model.NewsImage) 
+                        ? (Model.NewsImage.StartsWith("http") ? Model.NewsImage : $"http://localhost:5000{Model.NewsImage}") 
+                        : $"https://picsum.photos/seed/{Model.NewsArticleId}/1200/600";
+                }
+                <figure class="mb-4">
+                    <img class="img-fluid rounded shadow-sm" src="@detailImage" alt="@Model.NewsTitle" style="width: 100%; max-height: 450px; object-fit: cover;" />
+                </figure>                
                 <!-- Content -->
                 <section class="mb-5 fs-5" style="line-height: 1.8; color: #374151;">
                     @Html.Raw(Model.NewsContent)

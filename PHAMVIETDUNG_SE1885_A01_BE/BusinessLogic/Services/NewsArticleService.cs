@@ -125,6 +125,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
                 existing.Headline = news.Headline;
                 existing.NewsContent = news.NewsContent;
                 existing.NewsSource = news.NewsSource;
+                existing.NewsImage = news.NewsImage; // Update image path
                 existing.CategoryId = news.CategoryId;
                 existing.NewsStatus = news.NewsStatus;
                 existing.UpdatedById = news.UpdatedById;

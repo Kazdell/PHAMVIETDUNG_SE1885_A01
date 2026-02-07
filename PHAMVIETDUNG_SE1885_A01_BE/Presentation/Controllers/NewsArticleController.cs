@@ -45,7 +45,12 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Controllers
         {
             try
             {
+                // Priority: File upload > URL
                 string? imagePath = await SaveImage(model.ImageFile);
+                if (string.IsNullOrEmpty(imagePath) && !string.IsNullOrEmpty(model.NewsImage))
+                {
+                    imagePath = model.NewsImage; // Use URL if no file uploaded
+                }
 
                 var news = new NewsArticle
                 {
@@ -55,7 +60,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Controllers
                     CreatedDate = model.CreatedDate ?? DateTime.Now,
                     NewsContent = model.NewsContent,
                     NewsSource = model.NewsSource,
-                    NewsImage = imagePath, // Added NewsImage
+                    NewsImage = imagePath, // File or URL
                     CategoryId = model.CategoryId,
                     NewsStatus = model.NewsStatus,
                     CreatedById = model.CreatedById,
@@ -78,40 +83,38 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Controllers
             if (id != model.NewsArticleId) return BadRequest("ID mismatch");
             try
             {
+                // Priority: File upload > URL > Original image
                 string? imagePath = await SaveImage(model.ImageFile);
+                if (string.IsNullOrEmpty(imagePath) && !string.IsNullOrEmpty(model.NewsImage))
+                {
+                    imagePath = model.NewsImage; // Use URL if no file uploaded
+                }
 
                 var news = new NewsArticle
                 {
                     NewsArticleId = model.NewsArticleId,
                     NewsTitle = model.NewsTitle,
                     Headline = model.Headline,
-                    // CreatedDate = model.CreatedDate, // Service ignores these for update usually
-                    // CreatedById = model.CreatedById,
                     NewsContent = model.NewsContent,
                     NewsSource = model.NewsSource,
                     CategoryId = model.CategoryId,
                     NewsStatus = model.NewsStatus,
                     UpdatedById = model.UpdatedById
-                    // ModifiedDate handled by service
                 };
 
-                // Only update image if a new file is uploaded
+                // Set image: use new value if provided, else keep original
                 if (!string.IsNullOrEmpty(imagePath))
                 {
                     news.NewsImage = imagePath;
                 }
-                // Logic to keep old image if imagePath is null needs to be handled in Service or assumed here. 
-                // For now, I'll pass it to Service. If Service replaces whole object, we might lose old image. 
-                // Better: Fetch existing news here? Or trust Service handles partial updates?
-                // The current Service probably does Entity Framework Update which might overwrite nulls.
-                // Recommendation: Pass the image path. If null, the Service should ideally not overwrite it, 
-                // OR we fetch the original here.
-                
-                // Let's check if we can fetch original here to be safe.
-                var original = _service.GetNewsById(id);
-                if (original != null && string.IsNullOrEmpty(imagePath))
+                else
                 {
-                     news.NewsImage = original.NewsImage;
+                    // Keep original image if no new image provided
+                    var original = _service.GetNewsById(id);
+                    if (original != null)
+                    {
+                        news.NewsImage = original.NewsImage;
+                    }
                 }
 
                 await _service.UpdateNewsAsync(news, model.SelectedTagIds);
@@ -141,10 +144,12 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Controllers
                 throw new Exception("Invalid file type. Only JPG, JPEG, PNG, and GIF are allowed.");
             }
 
-            var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+            // 3. Determine uploads folder - fallback to ContentRootPath if WebRootPath is null
+            var rootPath = _environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot");
+            var uploadsFolder = Path.Combine(rootPath, "uploads");
             if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
-            var uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
+            var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
             var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
             using (var fileStream = new FileStream(filePath, FileMode.Create))
