@@ -222,3 +222,8 @@ a:hover {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
+
+/* Hide dropdown caret on notification bell */
+.hide-caret::after {
+    display: none !important;
+}

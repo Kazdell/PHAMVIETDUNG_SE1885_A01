@@ -3,6 +3,7 @@ using PHAMVIETDUNG_SE1885_A01_BE.DataAccess.Repositories;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Http;
 using PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Hubs;
+using System.Net.Http.Json;
 
 namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
 {
@@ -14,6 +15,9 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
         private readonly IHubContext<BusinessLogic.Hubs.NotificationHub> _hubContext;
         private readonly IHubContext<BusinessLogic.Hubs.AdminDashboardHub> _adminHub;
         private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor _httpContextAccessor;
+        private readonly INotificationService _notificationService;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ITagRepository _tagRepository;
 
         public NewsArticleService(
             INewsArticleRepository repository, 
@@ -21,7 +25,10 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             IAuditService auditService,
             IHubContext<BusinessLogic.Hubs.NotificationHub> hubContext,
             IHubContext<BusinessLogic.Hubs.AdminDashboardHub> adminHub,
-            Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
+            Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor,
+            INotificationService notificationService,
+            IHttpClientFactory httpClientFactory,
+            ITagRepository tagRepository)
         {
             _repository = repository;
             _newsTagRepo = newsTagRepo;
@@ -29,6 +36,9 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             _hubContext = hubContext;
             _adminHub = adminHub;
             _httpContextAccessor = httpContextAccessor;
+            _notificationService = notificationService;
+            _httpClientFactory = httpClientFactory;
+            _tagRepository = tagRepository;
         }
 
         private string GetCurrentUserEmail()
@@ -78,6 +88,29 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             // Notification
             await _hubContext.Clients.All.SendAsync("ReceiveNotification", $"New Article Published: {news.NewsTitle}");
             await _adminHub.Clients.All.SendAsync("ReceiveNewArticle", new { Title = news.NewsTitle, AuthorId = news.CreatedById, ArticleId = news.NewsArticleId });
+
+            // Persist Notification for Author (Confirmation)
+            await _notificationService.CreateNotificationAsync(news.CreatedById ?? 0, "Article Published", $"Your article '{news.NewsTitle}' has been published successfully.", news.NewsArticleId);
+
+            // Broadcast Notification to ALL users (except author) - saved to DB for offline users
+            await _notificationService.BroadcastToAllAsync("New Article", $"'{news.NewsTitle}' has been published.", news.CreatedById, news.NewsArticleId);
+
+            // Call AiAPI to learn from article content and tags
+            if (tagIds != null && tagIds.Any() && !string.IsNullOrEmpty(news.NewsContent))
+            {
+                try
+                {
+                    var tagNames = _tagRepository.GetAll().Where(t => tagIds.Contains(t.TagId)).Select(t => t.TagName).ToList();
+                    var learnPayload = new { Content = news.NewsContent, Tags = tagNames };
+                    var aiClient = _httpClientFactory.CreateClient("AiClient");
+                    await aiClient.PostAsJsonAsync("/api/suggesttags/learn", learnPayload);
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't fail the article creation
+                    Console.WriteLine($"[NewsArticleService] AiAPI Learn call failed: {ex.Message}");
+                }
+            }
         }
 
         public async Task UpdateNewsAsync(NewsArticle news, List<int>? tagIds = null)

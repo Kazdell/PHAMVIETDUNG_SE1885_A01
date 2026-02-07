@@ -24,6 +24,7 @@ builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IGenericRepository<NewsTag>, GenericRepository<NewsTag>>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IAiCacheService, AiCacheService>();
@@ -31,6 +32,10 @@ builder.Services.AddHostedService<CacheRefreshWorker>();
 
 builder.Services.AddSignalR();
 builder.Services.AddHttpContextAccessor();
+
+// Register HttpClients for external APIs
+builder.Services.AddHttpClient("AiClient", client => { client.BaseAddress = new Uri("http://localhost:5200"); });
+builder.Services.AddHttpClient("AnalyticsClient", client => { client.BaseAddress = new Uri("http://localhost:5100"); });
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddScoped<TokenService>();

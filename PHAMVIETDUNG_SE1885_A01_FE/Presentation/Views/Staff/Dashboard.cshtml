@@ -100,6 +100,8 @@
         // Init SignalR
         const dashboardConnection = new signalR.HubConnectionBuilder()
             .withUrl("http://localhost:5000/hubs/admindashboard")
+            .withAutomaticReconnect([0, 2000, 5000, 10000, 30000]) // Retry immediately, then at 2s, 5s, 10s, 30s
+            .configureLogging(signalR.LogLevel.Warning)
             .build();
 
         // Listen for Article View
@@ -193,8 +195,9 @@
 
         dashboardConnection.onclose(error => {
             updateStatus("Disconnected", "bg-danger");
-            console.error("SignalR Closed. Retrying...", error);
-            setTimeout(startConnection, 5000);
+            console.error("SignalR Closed permanently.", error);
+            addActivityLog(`<span class="text-danger">Disconnected from Real-time Stream.</span>`);
+            // withAutomaticReconnect handles retries, onclose is only called after all retries exhausted
         });
 
         function updateStatus(text, badgeClass) {
@@ -206,6 +209,11 @@
         }
 
         async function startConnection() {
+            // Prevent duplicate start attempts
+            if (dashboardConnection.state !== signalR.HubConnectionState.Disconnected) {
+                console.log("SignalR: Connection not in Disconnected state, skipping start.");
+                return;
+            }
             try {
                 await dashboardConnection.start();
                 updateStatus("Connected", "bg-success");
@@ -215,7 +223,10 @@
                 updateStatus("Error", "bg-danger");
                 console.error("SignalR Connection Error:", err.toString());
                 addActivityLog(`<span class="text-danger">Error connecting to Real-time Stream.</span>`);
-                setTimeout(startConnection, 5000);
+                // Only retry if not already reconnecting (withAutomaticReconnect handles reconnects)
+                if (dashboardConnection.state === signalR.HubConnectionState.Disconnected) {
+                    setTimeout(startConnection, 5000);
+                }
             }
         }
 

@@ -16,6 +16,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<AuthHeaderHandler>();
 builder.Services.AddSession();
 
+// Register Services
+
 // Function to define retry policy
 var retryPolicy = Policy.Handle<HttpRequestException>()
     .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode && r.StatusCode != System.Net.HttpStatusCode.Unauthorized && r.StatusCode != System.Net.HttpStatusCode.BadRequest)

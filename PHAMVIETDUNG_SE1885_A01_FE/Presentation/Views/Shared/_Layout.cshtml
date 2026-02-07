@@ -70,11 +70,12 @@
                         }
                         @if (Context.Session.GetString("AccountId") != null)
                         {
+                            <input type="hidden" id="currentAccountId" value="@Context.Session.GetString("AccountId")" />
                             <!-- Notification Center -->
                             <li class="nav-item dropdown me-2">
                                 <a class="nav-link dropdown-toggle position-relative hide-caret" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-bell fs-5"></i>
-                                    <span id="notificationBadge" class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+                                    <span id="notificationBadge" class="position-absolute start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.65rem;">
                                         0
                                     </span>
                                 </a>
