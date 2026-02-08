@@ -28,7 +28,7 @@ namespace PHAMVIETDUNG_SE1885_A01_FE.Controllers
             // We should use /api/... in request or ensure base addr has /api.
             // In Program.cs: BaseAddress = new Uri("http://localhost:5000"); -> No /api
             
-            var response = await client.GetAsync("/api/NewsArticle?$filter=NewsStatus eq true&$orderby=CreatedDate desc");
+            var response = await client.GetAsync("/api/NewsArticle?$filter=NewsStatus eq true&$orderby=CreatedDate desc&$top=12");
             
             if (response.IsSuccessStatusCode)
             {
@@ -63,6 +63,15 @@ namespace PHAMVIETDUNG_SE1885_A01_FE.Controllers
             }
 
             return View(news);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> IncrementView(string id)
+        {
+            var client = _httpClientFactory.CreateClient("CoreClient");
+            var response = await client.PostAsync($"/api/NewsArticle/IncrementView/{id}", null);
+            if (response.IsSuccessStatusCode) return Ok();
+            return BadRequest();
         }
 
         public IActionResult Privacy()

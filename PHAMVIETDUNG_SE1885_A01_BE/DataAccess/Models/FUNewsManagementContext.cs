@@ -16,6 +16,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.DataAccess.Models
         public virtual DbSet<NewsTag> NewsTags { get; set; } = null!;
         public virtual DbSet<AuditLog> AuditLogs { get; set; } = null!;
         public virtual DbSet<Notification> Notifications { get; set; } = null!;
+        public virtual DbSet<NewsView> NewsViews { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

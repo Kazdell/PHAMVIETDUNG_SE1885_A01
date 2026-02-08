@@ -54,7 +54,9 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Controllers
 
                 var news = new NewsArticle
                 {
-                    NewsArticleId = model.NewsArticleId, // Or generate new if not provided? Frontend creates ID usually?
+                    NewsArticleId = string.IsNullOrEmpty(model.NewsArticleId) 
+                        ? DateTime.Now.Ticks.ToString() 
+                        : model.NewsArticleId,
                     NewsTitle = model.NewsTitle,
                     Headline = model.Headline,
                     CreatedDate = model.CreatedDate ?? DateTime.Now,
@@ -192,6 +194,26 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Controllers
         public IActionResult GetReport(DateTime? startDate, DateTime? endDate, int? categoryId, short? createdById, bool? status, int page = 1, int pageSize = 12)
         {
             return Ok(_service.GetNewsReport(startDate, endDate, categoryId, createdById, status, page, pageSize));
+        }
+
+        [HttpPost("IncrementView/{id}")]
+        public async Task<IActionResult> IncrementView(string id)
+        {
+            // Try to get userId from token if available
+            short? userId = null;
+            // Assuming we might have a claim or something, or passed via query?
+            // The requirement says "dù có đăng nhập tài khoản hay xem bằng kiểu guest".
+            // If logged in, we should record it.
+            // Check headers or User Object?
+            // User is populated by JWT Middleware if token present.
+            var accountIdClaim = User.FindFirst("AccountId");
+            if (accountIdClaim != null && short.TryParse(accountIdClaim.Value, out short accId))
+            {
+                userId = accId;
+            }
+
+            await _service.IncrementViewCount(id, userId);
+            return Ok();
         }
     }
 }

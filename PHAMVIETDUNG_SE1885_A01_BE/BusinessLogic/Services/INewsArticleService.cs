@@ -14,5 +14,6 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
         IEnumerable<NewsArticle> GetRelatedNews(string newsId);
         ViewModels.ReportResult GetNewsReport(DateTime? startDate, DateTime? endDate, int? categoryId, short? createdById, bool? status, int page, int pageSize);
         void DuplicateNews(string id, short userId);
+        Task IncrementViewCount(string id, short? viewerId);
     }
 }

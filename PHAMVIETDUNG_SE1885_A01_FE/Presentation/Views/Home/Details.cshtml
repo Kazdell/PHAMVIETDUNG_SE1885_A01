@@ -137,3 +137,31 @@
     .article-content p { margin-bottom: 1.5rem; }
     .article-content img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1rem 0; }
 </style>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const articleId = "@Model.NewsArticleId";
+            const viewTimeout = 10000; // 10 seconds
+
+            console.log(`View timer started for article ${articleId}...`);
+
+            setTimeout(() => {
+                fetch(`/Home/IncrementView/${articleId}`, {
+                    method: 'POST',
+                     headers: {
+                        'RequestVerificationToken': document.getElementsByName("__RequestVerificationToken")[0]?.value
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        console.log("View count incremented successfully.");
+                    } else {
+                        console.warn("Failed to increment view count.", response.status);
+                    }
+                })
+                .catch(err => console.error("Error incrementing view count:", err));
+            }, viewTimeout);
+        });
+    </script>
+}

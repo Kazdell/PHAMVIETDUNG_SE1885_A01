@@ -22,6 +22,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<INewsArticleService, NewsArticleService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IGenericRepository<NewsTag>, GenericRepository<NewsTag>>();
+builder.Services.AddScoped<IGenericRepository<NewsView>, GenericRepository<NewsView>>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();

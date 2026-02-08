@@ -22,14 +22,15 @@ namespace FUNewsManagementSystem.AnalyticsAPI.Controllers
             // In a real system, we would track "Views" and order by that.
             var trending = await _context.NewsArticles
                 .Where(n => n.NewsStatus == true)
-                .OrderByDescending(n => n.CreatedDate)
+                .OrderByDescending(n => n.ViewCount) // Real trending logic
                 .Take(5)
                 .Select(n => new 
                 { 
                     Id = n.NewsArticleId, 
                     Title = n.NewsTitle, 
                     Category = n.Category.CategoryName,
-                    Date = n.CreatedDate
+                    Date = n.CreatedDate,
+                    ViewCount = n.ViewCount // Include ViewCount
                 })
                 .ToListAsync();
 

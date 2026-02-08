@@ -9,22 +9,21 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly FUNewsManagementContext _context;
+        private readonly ISystemAccountService _accountService;
         private readonly TokenService _tokenService;
 
-        public AuthController(FUNewsManagementContext context, TokenService tokenService)
+        public AuthController(ISystemAccountService accountService, TokenService tokenService)
         {
-            _context = context;
+            _accountService = accountService;
             _tokenService = tokenService;
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginModel model)
+        public IActionResult Login([FromBody] LoginModel model)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var user = await _context.SystemAccounts
-                .FirstOrDefaultAsync(u => u.AccountEmail == model.Email && u.AccountPassword == model.Password);
+            var user = _accountService.Login(model.Email, model.Password);
 
             if (user == null)
             {
@@ -55,8 +54,8 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Controllers
             
             // Generate new token
             // We need to fetch user again to generate token
-            var userId = short.Parse(principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
-            var user = _context.SystemAccounts.Find(userId);
+            var userId = int.Parse(principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
+            var user = _accountService.GetAccountById(userId);
 
             if (user == null) return Unauthorized();
 

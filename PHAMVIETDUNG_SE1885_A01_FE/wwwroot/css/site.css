@@ -3,35 +3,50 @@
 
 :root {
     /* Color Palette - White Dominant & Slate */
-    --primary-color: #2563eb;       /* Brand Blue */
-    --primary-hover: #1d4ed8;       /* Darker Blue */
-    --secondary-color: #64748b;     /* Slate 500 */
-    
-    --success-color: #10b981;       /* Emerald 500 */
-    --danger-color: #ef4444;        /* Red 500 */
-    --warning-color: #f59e0b;       /* Amber 500 */
-    --info-color: #3b82f6;          /* Blue 500 */
+    --primary-color: #2563eb;
+    /* Brand Blue */
+    --primary-hover: #1d4ed8;
+    /* Darker Blue */
+    --secondary-color: #64748b;
+    /* Slate 500 */
+
+    --success-color: #10b981;
+    /* Emerald 500 */
+    --danger-color: #ef4444;
+    /* Red 500 */
+    --warning-color: #f59e0b;
+    /* Amber 500 */
+    --info-color: #3b82f6;
+    /* Blue 500 */
 
     /* Backgrounds */
-    --bg-body: #f8fafc;             /* Slate 50 - Light Gray Background */
-    --bg-surface: #ffffff;          /* White Surface */
-    --bg-sidebar: #ffffff;          /* White Sidebar */
+    --bg-body: #f8fafc;
+    /* Slate 50 - Light Gray Background */
+    --bg-surface: #ffffff;
+    /* White Surface */
+    --bg-sidebar: #ffffff;
+    /* White Sidebar */
 
     /* Text */
-    --text-main: #0f172a;           /* Slate 900 - High Contrast */
-    --text-muted: #64748b;          /* Slate 500 */
-    --text-light: #94a3b8;          /* Slate 400 */
+    --text-main: #0f172a;
+    /* Slate 900 - High Contrast */
+    --text-muted: #64748b;
+    /* Slate 500 */
+    --text-light: #94a3b8;
+    /* Slate 400 */
 
     /* Borders */
-    --border-color: #e2e8f0;        /* Slate 200 */
-    --border-focus: #94a3b8;        /* Slate 400 */
+    --border-color: #e2e8f0;
+    /* Slate 200 */
+    --border-focus: #94a3b8;
+    /* Slate 400 */
 
     /* Shadows (Soft & Modern) */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
-    
+
     /* Radius */
     --radius-sm: 0.375rem;
     --radius-md: 0.5rem;
@@ -81,9 +96,11 @@ a:hover {
     transition: all 0.2s ease;
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover,
+.nav-link.active {
     color: var(--primary-color) !important;
-    background-color: #f1f5f9; /* Slate 100 */
+    background-color: #f1f5f9;
+    /* Slate 100 */
 }
 
 /* Buttons */
@@ -116,7 +133,7 @@ a:hover {
 .btn-outline-secondary:hover {
     background-color: #f8fafc;
     color: var(--text-main);
-    border-color: #cbd5e1; 
+    border-color: #cbd5e1;
 }
 
 /* Cards */
@@ -151,7 +168,8 @@ a:hover {
 }
 
 .table thead th {
-    background-color: #f8fafc; /* Slate 50 */
+    background-color: #f8fafc;
+    /* Slate 50 */
     color: var(--text-muted);
     font-weight: 600;
     text-transform: uppercase;
@@ -175,13 +193,34 @@ a:hover {
     border-radius: var(--radius-sm);
 }
 
-.bg-primary-soft { background-color: #eff6ff; color: #1d4ed8; } /* Blue 50/700 */
-.bg-success-soft { background-color: #f0fdf4; color: #15803d; } /* Green 50/700 */
-.bg-warning-soft { background-color: #fffbeb; color: #b45309; } /* Amber 50/700 */
-.bg-danger-soft  { background-color: #fef2f2; color: #b91c1c; } /* Red 50/700 */
+.bg-primary-soft {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+}
+
+/* Blue 50/700 */
+.bg-success-soft {
+    background-color: #f0fdf4;
+    color: #15803d;
+}
+
+/* Green 50/700 */
+.bg-warning-soft {
+    background-color: #fffbeb;
+    color: #b45309;
+}
+
+/* Amber 50/700 */
+.bg-danger-soft {
+    background-color: #fef2f2;
+    color: #b91c1c;
+}
+
+/* Red 50/700 */
 
 /* Form Controls */
-.form-control, .form-select {
+.form-control,
+.form-select {
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
     padding: 0.6rem 1rem;
@@ -190,13 +229,14 @@ a:hover {
     color: var(--text-main);
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-.form-floating > label {
-    color: var(--text-muted); 
+.form-floating>label {
+    color: var(--text-muted);
 }
 
 /* Split Screen Login Layout */
@@ -215,15 +255,82 @@ a:hover {
 }
 
 /* Utilities */
-.text-muted { color: var(--text-muted) !important; }
-.fw-semibold { font-weight: 600 !important; }
-.fw-bold { font-weight: 700 !important; }
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.fw-semibold {
+    font-weight: 600 !important;
+}
+
+.fw-bold {
+    font-weight: 700 !important;
+}
 
 /* Hide dropdown caret */
-.hide-caret::after { display: none !important; }
+.hide-caret::after {
+    display: none !important;
+}
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Pagination Pro Max */
+.pagination {
+    gap: 0.25rem;
+}
+
+.pagination .page-link {
+    border: none;
+    border-radius: var(--radius-md) !important;
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background-color: transparent;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+}
+
+.pagination .page-link:hover {
+    background-color: #f1f5f9;
+    /* Slate 100 */
+    color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-sm);
+    font-weight: 600;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: var(--text-light);
+    background-color: transparent;
+    pointer-events: none;
+}
+
+.pagination .page-link:focus {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}

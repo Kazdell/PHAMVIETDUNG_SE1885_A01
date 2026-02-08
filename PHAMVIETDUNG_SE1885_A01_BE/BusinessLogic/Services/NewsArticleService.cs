@@ -11,6 +11,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
     {
         private readonly INewsArticleRepository _repository;
         private readonly IGenericRepository<NewsTag> _newsTagRepo;
+        private readonly IGenericRepository<NewsView> _newsViewRepo;
         private readonly IAuditService _auditService;
         private readonly IHubContext<BusinessLogic.Hubs.NotificationHub> _hubContext;
         private readonly IHubContext<BusinessLogic.Hubs.AdminDashboardHub> _adminHub;
@@ -22,6 +23,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
         public NewsArticleService(
             INewsArticleRepository repository, 
             IGenericRepository<NewsTag> newsTagRepo,
+            IGenericRepository<NewsView> newsViewRepo,
             IAuditService auditService,
             IHubContext<BusinessLogic.Hubs.NotificationHub> hubContext,
             IHubContext<BusinessLogic.Hubs.AdminDashboardHub> adminHub,
@@ -32,6 +34,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
         {
             _repository = repository;
             _newsTagRepo = newsTagRepo;
+            _newsViewRepo = newsViewRepo;
             _auditService = auditService;
             _hubContext = hubContext;
             _adminHub = adminHub;
@@ -61,9 +64,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             var news = _repository.GetById(id);
             if (news != null)
             {
-                news.ViewCount++;
-                _repository.Update(news);
-                _adminHub.Clients.All.SendAsync("ReceiveArticleView", new { ArticleId = news.NewsArticleId, AuthorId = news.CreatedById });
+                // Side-effect removed: View increment handled by IncrementViewCount
             }
             return news;
         }
@@ -304,7 +305,35 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
                 TotalRecords = totalRecords,
                 ActiveCount = activeCount,
                 InactiveCount = inactiveCount
+                
             };
+        }
+
+        public async Task IncrementViewCount(string id, short? viewerId)
+        {
+            var news = _repository.GetById(id);
+            if (news != null)
+            {
+                // 1. Add to History
+                var view = new NewsView 
+                { 
+                    NewsArticleId = id, 
+                    ViewerId = viewerId, 
+                    ViewDate = DateTime.Now 
+                };
+                _newsViewRepo.Insert(view);
+
+                // 2. Increment Counter
+                news.ViewCount++;
+                _repository.Update(news);
+
+                // 3. SignalR - Include Title now!
+                await _adminHub.Clients.All.SendAsync("ReceiveArticleView", new { 
+                    ArticleId = news.NewsArticleId, 
+                    Title = news.NewsTitle,
+                    AuthorId = news.CreatedById 
+                });
+            }
         }
     }
 }

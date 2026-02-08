@@ -7,3 +7,10 @@
 .vs/
 bin/
 obj/
+GEMINI.md
+
+# Log and test output files
+*.log
+*_log*.txt
+test_*.txt
+build_*.txt

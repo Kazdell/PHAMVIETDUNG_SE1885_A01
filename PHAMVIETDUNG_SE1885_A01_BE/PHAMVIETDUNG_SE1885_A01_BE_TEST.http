@@ -1,0 +1,286 @@
+@HostAddress = http://localhost:5084
+@Token = 
+
+### ===========================
+### AUTHENTICATION
+### ===========================
+
+# 1. Login (Admin)
+# Expected: 200 OK + Token
+POST {{HostAddress}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@news.com",
+  "password": "@Admin123"
+}
+
+###
+
+# 2. Login (Staff)
+# Expected: 200 OK + Token
+POST {{HostAddress}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "staff@news.com",
+  "password": "123"
+}
+
+###
+
+# 3. Refresh Token
+# Replace accessToken with a valid expired one if testing expiry
+POST {{HostAddress}}/api/Auth/refresh
+Content-Type: application/json
+
+{
+  "accessToken": "{{Token}}",
+  "refreshToken": "dummy_refresh_token"
+}
+
+### ===========================
+### SYSTEM ACCOUNTS
+### ===========================
+
+# 4. Get All Accounts
+GET {{HostAddress}}/api/SystemAccount
+Accept: application/json
+Authorization: Bearer {{Token}}
+
+###
+
+# 5. Get Account By ID
+GET {{HostAddress}}/api/SystemAccount/1
+Accept: application/json
+Authorization: Bearer {{Token}}
+
+###
+
+# 6. Create Account
+POST {{HostAddress}}/api/SystemAccount
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "accountName": "Test User",
+  "accountEmail": "test@user.com",
+  "accountRole": 2,
+  "accountPassword": "123"
+}
+
+###
+
+# 7. Update Account
+PUT {{HostAddress}}/api/SystemAccount/1
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "accountId": 1,
+  "accountName": "Admin Updated",
+  "accountEmail": "admin@news.com",
+  "accountRole": 1,
+  "accountPassword": "@Admin123"
+}
+
+###
+
+# 8. Delete Account
+DELETE {{HostAddress}}/api/SystemAccount/99
+Authorization: Bearer {{Token}}
+
+### ===========================
+### CATEGORIES
+### ===========================
+
+# 9. Get All Categories
+GET {{HostAddress}}/api/Category
+Accept: application/json
+
+###
+
+# 10. Get Category By ID
+GET {{HostAddress}}/api/Category/1
+Accept: application/json
+
+###
+
+# 11. Create Category
+POST {{HostAddress}}/api/Category
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "categoryName": "New Tech",
+  "categoryDesciption": "Latest technology news"
+}
+
+###
+
+# 12. Update Category
+PUT {{HostAddress}}/api/Category/1
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "categoryId": 1,
+  "categoryName": "Updated Tech",
+  "categoryDesciption": "Updated description",
+  "parentCategoryId": null,
+  "isActive": true
+}
+
+###
+
+# 13. Delete Category
+DELETE {{HostAddress}}/api/Category/99
+Authorization: Bearer {{Token}}
+
+### ===========================
+### TAGS
+### ===========================
+
+# 14. Get All Tags
+GET {{HostAddress}}/api/Tag
+Accept: application/json
+
+###
+
+# 15. Create Tag
+POST {{HostAddress}}/api/Tag
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "tagName": "#AI",
+  "note": "Artificial Intelligence"
+}
+
+### ===========================
+### NEWS ARTICLES
+### ===========================
+
+# 16. Get All News
+GET {{HostAddress}}/api/NewsArticle
+Accept: application/json
+
+###
+
+# 17. Get News By ID
+GET {{HostAddress}}/api/NewsArticle/1
+Accept: application/json
+
+###
+
+# 18. Get Related News
+GET {{HostAddress}}/api/NewsArticle/1/Related
+Accept: application/json
+
+###
+
+# 19. Create News Article (Simulation using Form fields)
+# Note: In VS Code REST Client, file upload is tricky without a real file.
+# We verify the logic with text fields.
+POST {{HostAddress}}/api/NewsArticle
+Content-Type: multipart/form-data; boundary=boundary123
+Authorization: Bearer {{Token}}
+
+--boundary123
+Content-Disposition: form-data; name="NewsTitle"
+
+Integration Test News
+--boundary123
+Content-Disposition: form-data; name="Headline"
+
+Testing API Creation
+--boundary123
+Content-Disposition: form-data; name="NewsContent"
+
+This is a test content created via API.
+--boundary123
+Content-Disposition: form-data; name="NewsSource"
+
+API Client
+--boundary123
+Content-Disposition: form-data; name="CategoryId"
+
+1
+--boundary123
+Content-Disposition: form-data; name="NewsStatus"
+
+true
+--boundary123
+Content-Disposition: form-data; name="CreatedById"
+
+1
+--boundary123
+Content-Disposition: form-data; name="UpdatedById"
+
+1
+--boundary123--
+
+###
+
+# 20. Update News Article
+PUT {{HostAddress}}/api/NewsArticle/1
+Content-Type: multipart/form-data; boundary=boundaryUpdate
+Authorization: Bearer {{Token}}
+
+--boundaryUpdate
+Content-Disposition: form-data; name="NewsArticleId"
+
+1
+--boundaryUpdate
+Content-Disposition: form-data; name="NewsTitle"
+
+Updated Title
+--boundaryUpdate
+Content-Disposition: form-data; name="Headline"
+
+Updated Headline
+--boundaryUpdate
+Content-Disposition: form-data; name="NewsContent"
+
+Updated Content...
+--boundaryUpdate
+Content-Disposition: form-data; name="NewsStatus"
+
+true
+--boundaryUpdate
+Content-Disposition: form-data; name="UpdatedById"
+
+1
+--boundaryUpdate--
+
+###
+
+# 21. Delete News
+DELETE {{HostAddress}}/api/NewsArticle/99
+Authorization: Bearer {{Token}}
+
+###
+
+# 22. Get News Report
+GET {{HostAddress}}/api/NewsArticle/Report?page=1&pageSize=10
+Authorization: Bearer {{Token}}
+
+###
+
+# 23. Increment View Count
+POST {{HostAddress}}/api/NewsArticle/IncrementView/1
+Authorization: Bearer {{Token}}
+
+### ===========================
+### RECOMMENDATIONS & TRENDING
+### ===========================
+
+# 24. Get Trending News
+GET {{HostAddress}}/api/Recommendation/Trending
+Accept: application/json
+
+###
+
+# 25. Get Personalized Recommendations
+GET {{HostAddress}}/api/Recommendation/Recommend?userId=1
+Accept: application/json

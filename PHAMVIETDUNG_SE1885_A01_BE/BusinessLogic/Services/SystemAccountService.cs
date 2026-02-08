@@ -39,6 +39,9 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             var adminPassword = _configuration["AdminAccount:Password"];
             var adminRole = _configuration["AdminAccount:Role"];
 
+            // DEBUG LOGGING
+            Console.WriteLine($"[DEBUG] Login Input: {email} / {password}");
+
             if (email == adminEmail && password == adminPassword)
             {
                 return new SystemAccount

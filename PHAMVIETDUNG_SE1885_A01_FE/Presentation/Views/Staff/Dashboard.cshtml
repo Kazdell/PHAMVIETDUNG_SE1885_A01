@@ -109,6 +109,7 @@
             // Check for both camelCase and PascalCase
             const articleId = data.articleId || data.ArticleId;
             const authorId = data.authorId || data.AuthorId;
+            const articleTitle = data.title || data.Title || `Article #${articleId}`; // Use Title if available
 
             // Global View Counter (Session)
             let globalViewsEl = document.getElementById("totalViews");
@@ -119,18 +120,24 @@
 
             // Personal Logic
             // Ensure strict string comparison
+            console.log(`[SignalR] Msg Author: ${authorId}, Current User: ${currentUserId}`);
+            
             if (String(authorId) === String(currentUserId)) {
                 // Increment view for this article
                 if (!myArticleViews[articleId]) {
                     myArticleViews[articleId] = 0;
                 }
                 myArticleViews[articleId]++;
+                
+                console.log(`[SignalR] Updating Personal Stats. Article ${articleId} views: ${myArticleViews[articleId]}`);
 
                 // Update Top Article Logic
-                updateTopArticle(articleId);
+                updateTopArticle(articleId, articleTitle);
                 
                 // Add to Activity Feed
-                addActivityLog(`<span class="badge bg-info">VIEW</span> Someone viewed your article #${articleId}`);
+                addActivityLog(`<span class="badge bg-info">VIEW</span> Someone viewed: <strong>${articleTitle}</strong>`);
+            } else {
+                 console.log(`[SignalR] Author mismatch. Ignoring personal stats.`);
             }
         });
 
@@ -164,7 +171,7 @@
              loadTrending(); 
         });
 
-        function updateTopArticle(articleId) {
+        function updateTopArticle(articleId, articleTitle) {
             // Check if this article is now the top
             let currentTopViews = myTopArticleId ? myArticleViews[myTopArticleId] : 0;
             let thisArticleViews = myArticleViews[articleId];
@@ -172,11 +179,7 @@
             if (thisArticleViews > currentTopViews) {
                 myTopArticleId = articleId;
                 document.getElementById("myTopArticleViews").innerText = thisArticleViews;
-                // Ideally we'd have the title, but for now show ID or fetch it? 
-                // We can't easily fetch title from ID here without API call. 
-                // Let's just show ID or "Article #ID" for now, or assume we might have it if it was just created?
-                // Proper way: GET title via API if unknown. For simplicity:
-                document.getElementById("myTopArticleTitle").innerText = `Article #${articleId}`;
+                document.getElementById("myTopArticleTitle").innerText = articleTitle || `Article #${articleId}`;
             } else if (articleId === myTopArticleId) {
                 // Just update the count
                  document.getElementById("myTopArticleViews").innerText = thisArticleViews;
