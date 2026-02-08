@@ -1,6 +1,8 @@
 using FUNewsManagementSystem.Client.Infrastructure;
 using PHAMVIETDUNG_SE1885_A01_FE.Infrastructure.Hubs;
 using Polly;
+using WebOptimizer;
+using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +19,11 @@ builder.Services.AddTransient<AuthHeaderHandler>();
 builder.Services.AddSession();
 
 // Register Services
+builder.Services.AddWebOptimizer();
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+});
 
 // Function to define retry policy
 var retryPolicy = Policy.Handle<HttpRequestException>()
@@ -41,7 +48,18 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
 }
-app.UseStaticFiles();
+
+app.UseResponseCompression();
+app.UseWebOptimizer();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        const int durationInSeconds = 60 * 60 * 24 * 365; // 1 year
+        ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=" + durationInSeconds;
+    }
+});
 
 app.UseRouting();
 

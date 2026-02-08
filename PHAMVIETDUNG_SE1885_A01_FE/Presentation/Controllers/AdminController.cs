@@ -196,12 +196,25 @@ namespace PHAMVIETDUNG_SE1885_A01_FE.Presentation.Controllers
         public async Task<IActionResult> Report(DateTime? startDate, DateTime? endDate)
         {
             if (!IsAdmin()) return RedirectToAction("AccessDenied", "Account");
-            var client = _httpClientFactory.CreateClient("AnalyticsClient");
-            var response = await client.GetAsync("/api/dashboard");
-            if (response.IsSuccessStatusCode)
+            
+            try 
             {
-                 ViewBag.DashboardStats = await response.Content.ReadAsStringAsync();
+                var client = _httpClientFactory.CreateClient("AnalyticsClient");
+                var response = await client.GetAsync("/api/dashboard");
+                if (response.IsSuccessStatusCode)
+                {
+                     ViewBag.DashboardStats = await response.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    ViewBag.Error = "Failed to load report data from Analytics Service.";
+                }
             }
+            catch (Exception ex)
+            {
+                ViewBag.Error = $"Analytics Service is unavailable ({ex.Message}). please ensure the API is running on port 5100.";
+            }
+
             return View();
         }
 

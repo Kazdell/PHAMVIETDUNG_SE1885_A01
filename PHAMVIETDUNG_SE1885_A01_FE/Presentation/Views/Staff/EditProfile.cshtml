@@ -7,49 +7,96 @@
 <h1>Edit Profile</h1>
 
 <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3">
-                 <h5 class="mb-0 text-primary fw-bold">Update Account Info</h5>
+    <div class="col-xl-8 col-lg-9 col-md-10">
+        <!-- Hero Card -->
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5 animate__animated animate__fadeInUp">
+            <div class="bg-primary position-relative" style="height: 120px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
+                <div class="position-absolute bottom-0 start-0 w-100 p-3 text-white-50 small text-end opacity-50">
+                    <i class="bi bi-pencil-square me-1"></i> Update Information
+                </div>
             </div>
-            <div class="card-body p-4">
-                <form asp-action="EditProfile">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    <input type="hidden" asp-for="AccountId" />
-                    <div class="form-group mb-3">
-                        <label asp-for="AccountName" class="control-label fw-semibold mb-1">Full Name</label>
-                        <input asp-for="AccountName" class="form-control" />
-                        <span asp-validation-for="AccountName" class="text-danger"></span>
+            
+            <div class="card-body p-4 px-md-5">
+                <div class="d-flex align-items-end position-relative mb-4" style="margin-top: -60px;">
+                     <div class="rounded-circle bg-white p-1 shadow-sm">
+                        <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center fs-2 fw-bold" 
+                             style="width: 80px; height: 80px;">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
                     </div>
-                    <div class="form-group mb-3">
-                         <label asp-for="AccountEmail" class="control-label fw-semibold mb-1">Email Address</label>
-                        <input asp-for="AccountEmail" class="form-control" />
-                        <span asp-validation-for="AccountEmail" class="text-danger"></span>
+                    <div class="ms-3 mb-1">
+                        <h3 class="fw-bold mb-0">Edit Profile</h3>
+                        <p class="text-muted small mb-0">Update your personal details and security settings.</p>
                     </div>
-                    
-                    <hr class="my-4" />
-                    <h6 class="mb-3 text-muted text-uppercase small fw-bold">Change Password</h6>
+                </div>
 
-                    <div class="form-group mb-3">
-                        <label asp-for="OldPassword" class="control-label fw-semibold mb-1">Old Password</label>
-                        <input asp-for="OldPassword" class="form-control" type="password" />
-                        <span asp-validation-for="OldPassword" class="text-danger"></span>
-                    </div>
-                    <div class="form-group mb-3">
-                         <label asp-for="NewPassword" class="control-label fw-semibold mb-1">New Password (leave blank to keep current)</label>
-                        <input asp-for="NewPassword" class="form-control" type="password" />
-                        <span asp-validation-for="NewPassword" class="text-danger"></span>
+                <form asp-action="EditProfile" class="needs-validation" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 shadow-sm mb-4"></div>
+                    <input type="hidden" asp-for="AccountId" />
+                    
+                    <h5 class="fw-bold text-main mb-3 border-bottom pb-2"><i class="bi bi-person me-2 text-primary"></i>Personal Information</h5>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input asp-for="AccountName" class="form-control bg-light border-0 fw-medium" placeholder="Full Name" />
+                                <label asp-for="AccountName" class="text-muted">Full Name</label>
+                                <span asp-validation-for="AccountName" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input asp-for="AccountEmail" class="form-control bg-white" placeholder="name@example.com" disabled style="opacity: 0.7; cursor: not-allowed;" title="Email cannot be changed" />
+                                <label asp-for="AccountEmail" class="text-muted">Email Address <i class="bi bi-lock-fill ms-1"></i></label>
+                                <span asp-validation-for="AccountEmail" class="text-danger small"></span>
+                                <div class="form-text small text-end"><i class="bi bi-info-circle me-1"></i>Contact admin to change email</div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="d-flex justify-content-end gap-2 mt-4">
-                        <a asp-action="Profile" class="btn btn-outline-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary px-4">Update Profile</button>
+                    <h5 class="fw-bold text-main mb-3 border-bottom pb-2 mt-4"><i class="bi bi-shield-lock me-2 text-primary"></i>Security Settings</h5>
+                    <div class="alert alert-light border-start border-4 border-info shadow-sm mb-4">
+                        <small class="text-muted"><i class="bi bi-lightbulb me-2"></i>Leave the "New Password" field blank if you do not wish to change your password.</small>
+                    </div>
+
+                    <div class="row g-3">
+                         <div class="col-12">
+                            <div class="form-floating">
+                                <input asp-for="OldPassword" class="form-control bg-light border-0" type="password" placeholder="Current Password" />
+                                <label asp-for="OldPassword" class="text-muted">Current Password (Required for changes)</label>
+                                <span asp-validation-for="OldPassword" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input asp-for="NewPassword" class="form-control bg-light border-0" type="password" placeholder="New Password" />
+                                <label asp-for="NewPassword" class="text-muted">New Password</label>
+                                <span asp-validation-for="NewPassword" class="text-danger small"></span>
+                            </div>
+                        </div>
+                         <!-- Add Confirm Password if model supports it, otherwise just rely on backend or simple UI -->
+                         <!-- Since specific ConfirmPassword field isn't in viewmodel evident from previous read, sticking to available fields -->
+                    </div>
+                    
+                    <hr class="my-4 opacity-10" />
+                    
+                    <div class="d-flex justify-content-end gap-3">
+                        <a asp-action="Profile" class="btn btn-light btn-lg px-4 rounded-pill fw-medium border">Cancel</a>
+                        <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm fw-bold hover-lift">
+                            <i class="bi bi-check-lg me-2"></i>Save Changes
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .form-floating > .form-control:focus ~ label::after { background-color: transparent !important; }
+    .form-floating > .form-control:focus { box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); border-color: #6366f1; }
+    .bg-light:focus { background-color: #fff !important; }
+</style>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

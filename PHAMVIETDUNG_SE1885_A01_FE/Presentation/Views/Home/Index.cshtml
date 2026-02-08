@@ -12,11 +12,27 @@
     var heroImage = !string.IsNullOrEmpty(featured.NewsImage) 
         ? (featured.NewsImage.StartsWith("http") ? featured.NewsImage : $"http://localhost:5000{featured.NewsImage}") 
         : $"https://picsum.photos/seed/{featured.NewsArticleId}/1200/600";
-    <div class="card hero-card bg-dark text-white mb-5 shadow-lg border-0" style="min-height: 400px; background-image: url('@heroImage'); background-size: cover; background-position: center;">
-        <div class="hero-overlay">
-            <h1 class="hero-title">@featured.NewsTitle</h1>
-            <p class="lead">@featured.Headline</p>
-            <a asp-action="Details" asp-route-id="@featured.NewsArticleId" class="btn btn-primary btn-lg mt-2">Read Article</a>
+    <div class="card border-0 shadow-xl rounded-4 mb-5 overflow-hidden position-relative" style="min-height: 500px;">
+        <!-- Background Image -->
+        <div class="position-absolute top-0 start-0 w-100 h-100" 
+             style="background-image: url('@heroImage'); background-size: cover; background-position: center; transition: transform 0.5s ease;">
+        </div>
+        
+        <!-- Gradient Overlay -->
+        <div class="position-absolute bottom-0 start-0 w-100 h-100" 
+             style="background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);">
+        </div>
+
+        <!-- Content -->
+        <div class="position-absolute bottom-0 start-0 p-5 w-100 text-white" style="z-index: 2;">
+            <div class="container-fluid px-0" style="max-width: 900px; margin: 0;">
+                <span class="badge bg-primary mb-3 px-3 py-2 rounded-pill shadow-sm">Featured Story</span>
+                <h1 class="display-4 fw-bold mb-3 text-shadow" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">@featured.NewsTitle</h1>
+                <p class="lead mb-4 text-white-50" style="text-shadow: 0 1px 2px rgba(0,0,0,0.5); max-width: 700px;">@featured.Headline</p>
+                <a asp-action="Details" asp-route-id="@featured.NewsArticleId" class="btn btn-light rounded-pill px-4 py-2 fw-bold text-primary shadow-lg hover-scale">
+                    Read Article <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+            </div>
         </div>
     </div>
 }

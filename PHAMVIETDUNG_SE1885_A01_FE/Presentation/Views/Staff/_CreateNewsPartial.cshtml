@@ -7,100 +7,124 @@
 }
 
 <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title" id="actionModalLabel">Create News Article</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header bg-surface border-bottom py-3 px-4">
+            <div>
+                <h5 class="modal-title fw-bold text-main" id="actionModalLabel">Draft Article</h5>
+                <p class="mb-0 small text-muted">Create a new story for your audience</p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body p-4">
+        <div class="modal-body p-4 bg-body">
             <form asp-action="CreateNews" class="modal-form" enctype="multipart/form-data">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="form-group mb-3">
-                            <label asp-for="NewsTitle" class="control-label fw-semibold mb-1">Title</label>
-                            <input asp-for="NewsTitle" class="form-control" placeholder="Enter article title" />
-                            <span asp-validation-for="NewsTitle" class="text-danger"></span>
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label asp-for="Headline" class="control-label fw-semibold mb-1">Headline</label>
-                            <textarea asp-for="Headline" class="form-control" rows="2" placeholder="Short summary"></textarea>
-                            <span asp-validation-for="Headline" class="text-danger"></span>
-                        </div>
+                <div class="row g-4">
+                    <!-- Left Column: Content -->
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-body p-4">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="NewsTitle" class="form-control" id="floatingTitle" placeholder="Title" />
+                                    <label for="floatingTitle">Article Title</label>
+                                    <span asp-validation-for="NewsTitle" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="form-floating mb-3">
+                                    <textarea asp-for="Headline" class="form-control" id="floatingHeadline" style="height: 100px" placeholder="Headline"></textarea>
+                                    <label for="floatingHeadline">Headline / Summary</label>
+                                    <span asp-validation-for="Headline" class="text-danger small"></span>
+                                </div>
 
-                         <div class="form-group mb-3">
-                            <label class="control-label fw-semibold mb-1">Feature Image</label>
-                            <div class="mb-2">
-                                <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
-                                <span asp-validation-for="ImageFile" class="text-danger"></span>
+                                <div class="form-group mb-0">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="form-label fw-bold text-muted small uppercase">Content</label>
+                                        <!-- AI Magic Button -->
+                                        <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2 border-0 bg-primary-soft" id="btnSuggestTags">
+                                            <i class="bi bi-stars"></i> Auto-Tag with AI
+                                        </button>
+                                    </div>
+                                    <textarea asp-for="NewsContent" class="form-control" rows="12" placeholder="Write your story here..."></textarea>
+                                    <span asp-validation-for="NewsContent" class="text-danger small"></span>
+                                </div>
                             </div>
-                            <div>
-                                <label class="form-label small text-muted">Or paste image URL:</label>
-                                <input asp-for="NewsImage" type="url" class="form-control" placeholder="https://example.com/image.jpg" />
-                                <small class="text-muted">If both file and URL are provided, file upload takes priority.</small>
-                            </div>
-                        </div>
-                        
-                         <div class="form-group mb-3 position-relative">
-                            <label asp-for="CategoryId" class="control-label fw-semibold mb-1">Category</label>
-                            <input type="hidden" asp-for="CategoryId" id="CategoryId" />
-                            <input type="text" class="form-control" id="CategorySearch" placeholder="Type to search category..." autocomplete="off">
-                            <div id="CategoryList" class="list-group position-absolute w-100 shadow" style="display:none; z-index: 1000; max-height: 200px; overflow-y: auto;">
-                                @if(categories != null)
-                                {
-                                    foreach (var cat in categories)
-                                    {
-                                        <a href="javascript:void(0)" class="list-group-item list-group-item-action category-item" data-id="@cat.CategoryId" data-name="@cat.CategoryName">
-                                            @cat.CategoryName
-                                        </a>
-                                    }
-                                }
-                            </div>
-                            <span asp-validation-for="CategoryId" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label asp-for="NewsContent" class="control-label fw-semibold mb-1">Content</label>
-                            <textarea asp-for="NewsContent" class="form-control" rows="10" placeholder="Write your article here..."></textarea>
-                            <span asp-validation-for="NewsContent" class="text-danger"></span>
                         </div>
                     </div>
 
-                    <div class="col-md-4">
-                         <div class="form-group mb-3">
-                            <label asp-for="NewsSource" class="control-label fw-semibold mb-1">Source</label>
-                            <input asp-for="NewsSource" class="form-control" placeholder="e.g. CNN, BBC" />
-                            <span asp-validation-for="NewsSource" class="text-danger"></span>
+                    <!-- Right Column: Settings -->
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-white fw-bold border-bottom-0 pt-3">Publishing</div>
+                            <div class="card-body">
+                                <div class="form-group mb-3 position-relative">
+                                    <label class="form-label small text-muted">Category</label>
+                                    <input type="hidden" asp-for="CategoryId" id="CategoryId" />
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control" id="CategorySearch" placeholder="Search category..." autocomplete="off">
+                                        <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+                                    </div>
+                                    <!-- Dropdown List -->
+                                    <div id="CategoryList" class="list-group position-absolute w-100 shadow-lg border-0 mt-1 rounded-3" style="display:none; z-index: 1050; max-height: 200px; overflow-y: auto;">
+                                        @if(categories != null)
+                                        {
+                                            foreach (var cat in categories)
+                                            {
+                                                <a href="javascript:void(0)" class="list-group-item list-group-item-action category-item border-0 border-bottom" data-id="@cat.CategoryId" data-name="@cat.CategoryName">
+                                                    @cat.CategoryName
+                                                </a>
+                                            }
+                                        }
+                                    </div>
+                                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label class="form-label small text-muted">Source</label>
+                                    <input asp-for="NewsSource" class="form-control" placeholder="e.g. CNN, BBC" />
+                                    <span asp-validation-for="NewsSource" class="text-danger small"></span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-group mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="control-label fw-semibold mb-0">Tags</label>
-                                <button type="button" class="btn btn-sm btn-outline-info" id="btnSuggestTags">
-                                    <i class="bi bi-magic"></i> Suggest Tags (AI)
-                                </button>
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-white fw-bold border-bottom-0 pt-3">Featured Image</div>
+                            <div class="card-body">
+                                <div class="p-3 border-2 border-dashed rounded-3 text-center bg-light mb-2">
+                                    <i class="bi bi-image fs-1 text-muted opacity-50"></i>
+                                    <div class="mt-2 text-muted small">Upload or Drop Image</div>
+                                    <input asp-for="ImageFile" type="file" class="form-control mt-2 form-control-sm" accept="image/*" />
+                                </div>
+                                <div class="text-center text-muted small mb-2">- OR -</div>
+                                <input asp-for="NewsImage" type="url" class="form-control form-control-sm" placeholder="Paste Image URL" />
                             </div>
-                            <div class="card bg-light border-0 p-3" style="max-height: 300px; overflow-y: auto;">
-                                @if (tags != null)
-                                {
-                                    @foreach (var tag in tags)
+                        </div>
+
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white fw-bold border-bottom-0 pt-3">Tags</div>
+                            <div class="card-body p-0">
+                                <div class="p-3" style="max-height: 250px; overflow-y: auto;">
+                                    @if (tags != null)
                                     {
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="SelectedTagIds" value="@tag.TagId" id="tag_@tag.TagId">
-                                            <label class="form-check-label" for="tag_@tag.TagId">@tag.TagName</label>
-                                        </div>
+                                        @foreach (var tag in tags)
+                                        {
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" name="SelectedTagIds" value="@tag.TagId" id="tag_@tag.TagId">
+                                                <label class="form-check-label small" for="tag_@tag.TagId">@tag.TagName</label>
+                                            </div>
+                                        }
                                     }
-                                }
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end gap-2 mt-4">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary px-4">Create Article</button>
+                <div class="modal-footer border-top-0 d-flex justify-content-between px-0 pb-0 mt-3">
+                     <span class="text-muted small"><i class="bi bi-info-circle me-1"></i> Auto-saved 1 min ago</span>
+                     <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4 shadow-sm">Publish Article</button>
+                     </div>
                 </div>
             </form>
         </div>

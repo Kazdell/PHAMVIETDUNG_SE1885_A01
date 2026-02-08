@@ -66,13 +66,18 @@
         },
 
         checkConnection: function () {
-            // Simple ping to check if server is actually reachable
-            // We use a HEAD request to a static file or lightweight endpoint
-            fetch('/favicon.ico', { method: 'HEAD', cache: 'no-cache' })
-                .then(() => {
-                    if (!this.isOnline) this.handleOnline();
+            // Verify connection with a dedicated Ping endpoint
+            fetch('/Home/Ping', { method: 'GET', cache: 'no-cache' })
+                .then(response => {
+                    if (response.ok) {
+                        if (!this.isOnline) this.handleOnline();
+                    } else {
+                        // Server reachable but returned error (e.g. 500)
+                        if (!this.isOnline) this.handleOnline();
+                    }
                 })
                 .catch(() => {
+                    // Network error = Offline
                     if (this.isOnline) this.handleOffline();
                 });
         },
@@ -99,11 +104,14 @@
 
             // Show/hide offline banner
             if (banner) {
+                const textSpan = document.getElementById('offline-text');
                 if (!this.isOnline) {
-                    banner.style.display = 'block';
-                    banner.innerHTML = '<strong>Offline Mode</strong> - Server unreachable. Features disabled.';
+                    banner.classList.remove('d-none');
+                    banner.classList.add('d-flex');
+                    if (textSpan) textSpan.innerHTML = '<strong>Offline Mode</strong> - Server unreachable. Features disabled.';
                 } else {
-                    banner.style.display = 'none';
+                    banner.classList.remove('d-flex');
+                    banner.classList.add('d-none');
                 }
             }
 

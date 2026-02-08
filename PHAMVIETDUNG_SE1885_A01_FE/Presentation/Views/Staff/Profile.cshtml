@@ -1,40 +1,113 @@
 @model PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels.SystemAccountViewModel
-
 @{
     ViewData["Title"] = "My Profile";
 }
 
-<h1>My Profile</h1>
-
-<div class="row">
-    <div class="col-md-8 col-lg-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-4">
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fs-3 fw-bold me-3" style="width: 64px; height: 64px;">
-                        @(Model.AccountName?.Substring(0, 1).ToUpper() ?? "U")
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-9 col-md-10">
+        <!-- Hero Profile Card -->
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5 animate__animated animate__fadeInDown">
+            <!-- Banner -->
+            <div class="bg-primary position-relative" style="height: 160px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
+                <div class="position-absolute bottom-0 start-0 w-100 p-3 text-white-50 small text-end opacity-50">
+                    <i class="bi bi-person-badge me-1"></i> Staff Identity
+                </div>
+            </div>
+            
+            <div class="card-body p-0 position-relative">
+                <!-- Avatar & Header -->
+                <div class="px-4 px-md-5 pb-4">
+                    <div class="d-md-flex justify-content-between align-items-end">
+                        <div class="d-flex align-items-end position-relative" style="margin-top: -60px;">
+                            <div class="rounded-circle bg-white p-1 shadow-sm">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fs-1 fw-bold" 
+                                     style="width: 120px; height: 120px; font-size: 3rem !important; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    @(Model.AccountName?.Substring(0, 1).ToUpper() ?? "U")
+                                </div>
+                            </div>
+                            <div class="ms-3 mb-2 d-none d-md-block">
+                                <h2 class="fw-bold mb-0 text-dark">@Model.AccountName</h2>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <span class="badge bg-info-subtle text-info-emphasis border rounded-pill px-3">
+                                        <i class="bi bi-shield-check me-1"></i> Staff Editor
+                                    </span>
+                                    <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i> Internal User</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 mt-md-0 d-flex gap-2">
+                            <a asp-action="EditProfile" class="btn btn-primary shadow-sm rounded-pill px-4 hover-lift fw-medium">
+                                <i class="bi bi-pencil-square me-2"></i>Edit Profile
+                            </a>
+                        </div>
                     </div>
-                    <div>
-                        <h4 class="fw-bold mb-0">@Model.AccountName</h4>
-                        <span class="badge bg-info-subtle text-info-emphasis border rounded-pill">Staff Member</span>
+                    
+                    <!-- Mobile Name (visible only on small screens) -->
+                    <div class="mt-3 d-md-none text-center">
+                        <h2 class="fw-bold mb-1">@Model.AccountName</h2>
+                        <span class="badge bg-info-subtle text-info-emphasis border rounded-pill mb-2">Staff Editor</span>
+                    </div>
+
+                    <!-- Details Grid -->
+                    <hr class="my-4 text-muted opacity-25" />
+                    
+                    <h5 class="fw-bold text-main mb-4"><i class="bi bi-info-circle me-2 text-primary"></i>Account Details</h5>
+                    
+                    <div class="row g-4">
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-light rounded-3 border h-100">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Email Address</label>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-envelope text-primary me-2 opacity-75"></i>
+                                    <span class="fw-medium text-dark">@Model.AccountEmail</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-light rounded-3 border h-100">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Account ID</label>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-hash text-primary me-2 opacity-75"></i>
+                                    <span class="fw-medium text-dark font-monospace">@Model.AccountId</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-light rounded-3 border h-100">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Role Permission</label>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-key text-primary me-2 opacity-75"></i>
+                                    <span class="fw-medium text-dark">Content Management (Staff)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-light rounded-3 border h-100">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Status</label>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <span class="fw-medium text-dark">Active</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <dl class="row mb-0">
-                    <dt class="col-sm-4 text-muted small text-uppercase fw-semibold mb-3">Email Address</dt>
-                    <dd class="col-sm-8 mb-3">@Model.AccountEmail</dd>
-
-                    <dt class="col-sm-4 text-muted small text-uppercase fw-semibold mb-3">Role</dt>
-                    <dd class="col-sm-8 mb-3">Staff</dd>
-                    
-                    <dt class="col-sm-4 text-muted small text-uppercase fw-semibold">Account ID</dt>
-                    <dd class="col-sm-8 mb-0">@Model.AccountId</dd>
-                </dl>
             </div>
-            <div class="card-footer bg-light border-top-0 p-3 d-flex justify-content-between">
-                <a asp-action="News" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
-                <a asp-action="EditProfile" class="btn btn-primary px-4"><i class="bi bi-pencil-square"></i> Edit Profile</a>
+            
+             <div class="card-footer bg-white border-top p-4 d-flex justify-content-between align-items-center">
+                <a asp-action="Dashboard" class="btn btn-link text-muted text-decoration-none px-0 hover-icon-move">
+                    <i class="bi bi-arrow-left me-1 transition-icon"></i> Back to Dashboard
+                </a>
+                <span class="text-muted small fst-italic">Last login: Just now</span>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
+    .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+    
+    .hover-icon-move:hover .transition-icon { transform: translateX(-4px); }
+    .transition-icon { transition: transform 0.2s; display: inline-block; }
+</style>

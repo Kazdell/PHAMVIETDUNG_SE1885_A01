@@ -70,6 +70,12 @@ namespace PHAMVIETDUNG_SE1885_A01_FE.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult Ping()
+        {
+            return Ok();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
