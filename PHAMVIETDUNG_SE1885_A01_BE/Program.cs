@@ -28,6 +28,7 @@ builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddMemoryCache();
+builder.Services.AddLazyCache(); // Application-level caching for Categories/Tags
 builder.Services.AddScoped<IAiCacheService, AiCacheService>();
 builder.Services.AddHostedService<CacheRefreshWorker>();
 

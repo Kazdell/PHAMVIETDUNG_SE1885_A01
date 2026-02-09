@@ -1,0 +1,83 @@
+@{
+    ViewData["Title"] = "Article Not Found";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="mb-4">
+                <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 5rem;"></i>
+            </div>
+            <h2 class="fw-bold mb-3">Article Not Available</h2>
+            <p class="text-muted mb-4">
+                The article you're looking for is no longer available. It may have been removed or deleted.
+            </p>
+            <a asp-action="Index" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-house-fill me-2"></i>Return to Home
+            </a>
+            <p class="text-muted small mt-3">
+                Redirecting in <span id="countdown">1</span> seconds...
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Show toast notification
+    window.addEventListener('DOMContentLoaded', function() {
+        // ... (toast logic same) ...
+        var toastHtml = `
+            <div class="toast align-items-center text-white bg-warning border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" id="articleNotFoundToast">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Article Not Found</strong> - This article is no longer available.
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        var toastContainer = document.getElementById('toast-container');
+        if (toastContainer) {
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            var toastElement = document.getElementById('articleNotFoundToast');
+            var toast = new bootstrap.Toast(toastElement, { delay: 10000 });
+            toast.show();
+        }
+        
+        // Delete notification logic (same)
+        var notificationId = '@ViewBag.NotificationId';
+        if (notificationId) {
+            fetch('/api/Notification/Delete/' + notificationId, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            }).then(function(response) {
+                if (response.ok) {
+                    var badge = document.querySelector('.notification-badge');
+                    if (badge) {
+                        var currentCount = parseInt(badge.textContent) || 0;
+                        if (currentCount > 0) {
+                            badge.textContent = currentCount - 1;
+                            if (currentCount - 1 === 0) badge.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Countdown and Redirect
+        var seconds = 10;
+        var countdownEl = document.getElementById('countdown');
+        
+        var interval = setInterval(function() {
+            seconds--;
+            if (countdownEl) countdownEl.textContent = seconds;
+            
+            if (seconds <= 0) {
+                clearInterval(interval);
+                window.location.href = '@Url.Action("Index", "Home")';
+            }
+        }, 1000);
+    });
+</script>

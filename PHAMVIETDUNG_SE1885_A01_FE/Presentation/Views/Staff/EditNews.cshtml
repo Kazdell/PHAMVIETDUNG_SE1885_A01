@@ -2,157 +2,314 @@
 @using PHAMVIETDUNG_SE1885_A01_FE.Presentation.ViewModels
 
 @{
-    ViewData["Title"] = "Edit News";
-     var categories = ViewData["Categories"] as List<CategoryViewModel>;
+    ViewData["Title"] = "Edit Article";
+    var categories = ViewData["Categories"] as List<CategoryViewModel>;
     var tags = ViewData["Tags"] as List<TagViewModel>;
+    // Ensure tags are initialized to avoid null reference if viewdata is missing
+    tags ??= new List<TagViewModel>();
+    categories ??= new List<CategoryViewModel>();
 }
 
-<h1>Edit News Article</h1>
-
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3">
-                <h5 class="mb-0 text-primary fw-bold">Edit Article Details</h5>
+<div class="container-fluid px-lg-5 py-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-11">
+            <!-- Header -->
+            <div class="d-flex align-items-center justify-content-between mb-4 animate__animated animate__fadeInDown">
+                <div>
+                    <h2 class="fw-bold mb-1 text-dark">
+                        <i class="bi bi-pencil-square text-primary me-2"></i>Edit Article
+                    </h2>
+                    <p class="text-muted mb-0">Update content, manage settings, and publish changes</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-action="News" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="bi bi-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
             </div>
-            <div class="card-body p-4">
-                <form asp-action="EditNews">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    <input type="hidden" asp-for="NewsArticleId" />
-                    
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="form-group mb-3">
-                                <label asp-for="NewsTitle" class="control-label fw-semibold mb-1">Title</label>
-                                <input asp-for="NewsTitle" class="form-control" />
-                                <span asp-validation-for="NewsTitle" class="text-danger"></span>
-                            </div>
-                            
-                            <div class="form-group mb-3">
-                                <label asp-for="Headline" class="control-label fw-semibold mb-1">Headline</label>
-                                <textarea asp-for="Headline" class="form-control" rows="2"></textarea>
-                                <span asp-validation-for="Headline" class="text-danger"></span>
-                            </div>
-                            
-                            <div class="form-group mb-3 position-relative">
-                                <label asp-for="CategoryId" class="control-label fw-semibold mb-1">Category</label>
-                                <input type="hidden" asp-for="CategoryId" id="CategoryId" />
+
+            <form asp-action="EditNews" enctype="multipart/form-data" class="needs-validation" novalidate id="editNewsForm">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="NewsArticleId" />
+                <input type="hidden" asp-for="CreatedDate" />
+                <input type="hidden" asp-for="CreatedById" />
+                <input type="hidden" asp-for="ModifiedDate" />
+
+                <div class="row g-4">
+                    <!-- Left Column: Content -->
+                    <div class="col-lg-8 animate__animated animate__fadeInLeft">
+                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            <div class="card-body p-4">
+                                <div class="form-floating mb-4">
+                                    <input asp-for="NewsTitle" class="form-control form-control-lg fw-bold" id="floatingTitle" placeholder="Article Title" style="height: auto; min-height: 60px;">
+                                    <label for="floatingTitle">Article Title</label>
+                                    <span asp-validation-for="NewsTitle" class="text-danger small"></span>
+                                </div>
                                 
-                                <input type="text" class="form-control" id="CategorySearch" placeholder="Type to search category..." autocomplete="off" value="@(categories?.FirstOrDefault(c => c.CategoryId == Model.CategoryId)?.CategoryName ?? "")">
-                                <div id="CategoryList" class="list-group position-absolute w-100 shadow" style="display:none; z-index: 1000; max-height: 200px; overflow-y: auto;">
-                                    @if (categories != null)
-                                    {
+                                <div class="form-floating mb-4">
+                                    <textarea asp-for="Headline" class="form-control" id="floatingHeadline" style="height: 100px" placeholder="Headline"></textarea>
+                                    <label for="floatingHeadline">Headline / Summary</label>
+                                    <span asp-validation-for="Headline" class="text-danger small"></span>
+                                </div>
+
+                                <div class="form-group mb-0">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="form-label fw-bold text-muted small uppercase">Content</label>
+                                        <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2 border-0 bg-primary-soft" id="btnSuggestTags">
+                                            <i class="bi bi-stars"></i> Auto-Tag with AI
+                                        </button>
+                                    </div>
+                                    <textarea asp-for="NewsContent" class="form-control" rows="15" placeholder="Write your story here..."></textarea>
+                                    <span asp-validation-for="NewsContent" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Settings -->
+                    <div class="col-lg-4 animate__animated animate__fadeInRight">
+                        <!-- Publishing Card -->
+                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            <div class="card-header bg-white fw-bold border-bottom-0 pt-4 px-4 pb-0">Publishing</div>
+                            <div class="card-body p-4">
+                                <div class="form-group mb-4 position-relative">
+                                    <label class="form-label small text-muted">Category</label>
+                                    <input type="hidden" asp-for="CategoryId" id="CategoryId" />
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control" id="CategorySearch" placeholder="Search category..." autocomplete="off"
+                                               value="@(categories.FirstOrDefault(c => c.CategoryId == Model.CategoryId)?.CategoryName)">
+                                        <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+                                    </div>
+                                    <!-- Dropdown List -->
+                                    <div id="CategoryList" class="list-group position-absolute w-100 shadow-lg border-0 mt-1 rounded-3" style="display:none; z-index: 1050; max-height: 200px; overflow-y: auto;">
                                         @foreach (var cat in categories)
                                         {
-                                            <a href="javascript:void(0)" class="list-group-item list-group-item-action category-item" data-id="@cat.CategoryId" data-name="@cat.CategoryName">
+                                            <a href="javascript:void(0)" class="list-group-item list-group-item-action category-item border-0 border-bottom" data-id="@cat.CategoryId" data-name="@cat.CategoryName">
                                                 @cat.CategoryName
                                             </a>
                                         }
-                                    }
+                                    </div>
+                                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
                                 </div>
-                                <span asp-validation-for="CategoryId" class="text-danger"></span>
-                            </div>
-                             
-                             <div class="form-group mb-3">
-                                <label asp-for="NewsContent" class="control-label fw-semibold mb-1">Content</label>
-                                <textarea asp-for="NewsContent" class="form-control" rows="10"></textarea>
-                                <span asp-validation-for="NewsContent" class="text-danger"></span>
+
+                                <div class="form-group mb-4">
+                                    <label class="form-label small text-muted">Source</label>
+                                    <input asp-for="NewsSource" class="form-control" placeholder="e.g. CNN, BBC" />
+                                    <span asp-validation-for="NewsSource" class="text-danger small"></span>
+                                </div>
+
+                                <div class="form-group mb-0">
+                                    <label class="form-label small text-muted d-block mb-2">Status</label>
+                                    <div class="form-check form-switch p-0 m-0 d-flex align-items-center gap-3 bg-light rounded-3 p-3">
+                                        <input asp-for="NewsStatus" class="form-check-input m-0" type="checkbox" role="switch" id="newsStatusSwitch" style="width: 3em; height: 1.5em; cursor: pointer;">
+                                        <label class="form-check-label flex-grow-1 cursor-pointer" for="newsStatusSwitch" id="statusLabel">
+                                            @if (Model.NewsStatus == true)
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle">Published</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Draft</span>
+                                            }
+                                        </label>
+                                    </div>
+                                    <small class="text-muted d-block mt-2 px-1">Toggle to switch between Draft and Published state.</small>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="col-md-4">
-                            <div class="form-group mb-3">
-                                <label asp-for="NewsStatus" class="control-label fw-semibold mb-1">Status</label>
-                                <select asp-for="NewsStatus" class="form-select">
-                                    <option value="true">Active</option>
-                                    <option value="false">Inactive</option>
-                                </select>
-                            </div>
-
-                             <div class="form-group mb-3">
-                                <label asp-for="NewsSource" class="control-label fw-semibold mb-1">Source</label>
-                                <input asp-for="NewsSource" class="form-control" />
-                                <span asp-validation-for="NewsSource" class="text-danger"></span>
-                            </div>
-
-                            <div class="form-group mb-3">
-                                <label class="control-label fw-semibold mb-2">Tags</label>
-                                <div class="card bg-light border-0 p-3" style="max-height: 300px; overflow-y: auto;">
-                                    @if (tags != null)
+                        <!-- Image Card -->
+                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            <div class="card-header bg-white fw-bold border-bottom-0 pt-4 px-4 pb-0">Featured Image</div>
+                            <div class="card-body p-4">
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted">Current Image</label>
+                                    @if (!string.IsNullOrEmpty(Model.NewsImage))
                                     {
-                                        @foreach (var tag in tags)
-                                        {
-                                            var isChecked = Model.Tags.Any(t => t.TagId == tag.TagId) ? "checked" : "";
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="SelectedTagIds" value="@tag.TagId" id="tag_@tag.TagId" @isChecked>
-                                                <label class="form-check-label" for="tag_@tag.TagId">@tag.TagName</label>
-                                            </div>
-                                        }
+                                        <div class="rounded-3 overflow-hidden mb-2 position-relative group-hover">
+                                            <img src="@Model.NewsImage" class="img-fluid w-100 object-fit-cover" style="height: 160px;" alt="Current Image">
+                                        </div>
+                                    }
+                                </div>
+                                <div class="p-3 border-2 border-dashed rounded-3 text-center bg-light mb-3">
+                                    <i class="bi bi-cloud-upload fs-1 text-muted opacity-50"></i>
+                                    <div class="mt-2 text-muted small">Upload New Image</div>
+                                    <input asp-for="ImageFile" type="file" class="form-control mt-2 form-control-sm" accept="image/*" />
+                                </div>
+                                <div class="text-center text-muted small mb-2">- OR -</div>
+                                <input asp-for="NewsImage" type="url" class="form-control form-control-sm" placeholder="Update Image URL" />
+                            </div>
+                        </div>
+
+                        <!-- Tags Card -->
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-header bg-white fw-bold border-bottom-0 pt-4 px-4 pb-0">Tags</div>
+                            <div class="card-body p-0">
+                                <div class="p-4" style="max-height: 300px; overflow-y: auto;">
+                                    @foreach (var tag in tags)
+                                    {
+                                        var isChecked = Model.Tags != null && Model.Tags.Any(t => t.TagId == tag.TagId) ? "checked" : "";
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="SelectedTagIds" value="@tag.TagId" id="tag_@tag.TagId" @isChecked>
+                                            <label class="form-check-label small" for="tag_@tag.TagId">@tag.TagName</label>
+                                        </div>
                                     }
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Actions -->
+                        <div class="d-grid gap-2 mt-4 animate__animated animate__fadeInUp animate__delay-1s">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm hover-lift">
+                                <i class="bi bi-check-lg me-2"></i>Save Changes
+                            </button>
+                            <a asp-action="News" class="btn btn-light btn-lg rounded-pill border">
+                                <i class="bi bi-x-lg me-2"></i>Cancel
+                            </a>
+                        </div>
                     </div>
-
-                    <script>
-                        document.addEventListener("DOMContentLoaded", function() {
-                            const searchInput = document.getElementById("CategorySearch");
-                            const hiddenInput = document.getElementById("CategoryId");
-                            const list = document.getElementById("CategoryList");
-                            const items = list.querySelectorAll(".category-item");
-
-                            // Show list on focus
-                            searchInput.addEventListener("focus", function() {
-                                list.style.display = "block";
-                            });
-
-                            // Hide list on click outside
-                            document.addEventListener("click", function(e) {
-                                if (!searchInput.contains(e.target) && !list.contains(e.target)) {
-                                    list.style.display = "none";
-                                }
-                            });
-
-                            // Filter items
-                            searchInput.addEventListener("input", function() {
-                                const filter = searchInput.value.toLowerCase();
-                                let hasVisible = false;
-                                items.forEach(item => {
-                                    const text = item.getAttribute("data-name").toLowerCase();
-                                    if (text.includes(filter)) {
-                                        item.style.display = "";
-                                        hasVisible = true;
-                                    } else {
-                                        item.style.display = "none";
-                                    }
-                                });
-                                list.style.display = hasVisible ? "block" : "none";
-                            });
-
-                            // Select item
-                            items.forEach(item => {
-                                item.addEventListener("click", function() {
-                                    const id = this.getAttribute("data-id");
-                                    const name = this.getAttribute("data-name");
-                                    
-                                    hiddenInput.value = id;
-                                    searchInput.value = name;
-                                    list.style.display = "none";
-                                });
-                            });
-                        });
-                    </script>
-
-                    <div class="d-flex justify-content-end gap-2 mt-4">
-                        <a asp-action="News" class="btn btn-outline-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary px-4">Save Changes</button>
-                    </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Category Search Logic
+            const searchInput = document.getElementById("CategorySearch");
+            const hiddenInput = document.getElementById("CategoryId");
+            const list = document.getElementById("CategoryList");
+            const items = list.querySelectorAll(".category-item");
+
+            // Status Toggle Logic
+            var statusSwitch = document.getElementById("newsStatusSwitch");
+            var statusLabel = document.getElementById("statusLabel");
+            
+            if (statusSwitch && statusLabel) {
+                statusSwitch.addEventListener("change", function() {
+                    if (this.checked) {
+                        statusLabel.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle">Published</span>';
+                    } else {
+                        statusLabel.innerHTML = '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Draft</span>';
+                    }
+                });
+            }
+
+            if(searchInput && list) {
+                searchInput.addEventListener("focus", function() {
+                    list.style.display = "block";
+                });
+
+                document.addEventListener("click", function(e) {
+                    if (!searchInput.contains(e.target) && !list.contains(e.target)) {
+                        list.style.display = "none";
+                    }
+                });
+
+                searchInput.addEventListener("input", function() {
+                    const filter = searchInput.value.toLowerCase();
+                    let hasVisible = false;
+                    items.forEach(item => {
+                        const text = item.getAttribute("data-name").toLowerCase();
+                        if (text.includes(filter)) {
+                            item.style.display = "";
+                            hasVisible = true;
+                        } else {
+                            item.style.display = "none";
+                        }
+                    });
+                    list.style.display = hasVisible ? "block" : "none";
+                });
+
+                items.forEach(item => {
+                    item.addEventListener("click", function() {
+                        const id = this.getAttribute("data-id");
+                        const name = this.getAttribute("data-name");
+                        hiddenInput.value = id;
+                        searchInput.value = name;
+                        list.style.display = "none";
+                    });
+                });
+            }
+
+            // AI Suggest Tags Logic (Copied from Create and adapted)
+            var suggestBtn = document.getElementById("btnSuggestTags");
+            if(suggestBtn) {
+                suggestBtn.addEventListener("click", function() {
+                    var form = document.getElementById('editNewsForm');
+                    var content = form.querySelector('textarea[name="NewsContent"]')?.value || "";
+                    
+                    if (!content || content.length < 10) {
+                        alert("Please enter at least 10 characters of content.");
+                        return;
+                    }
+                    
+                    var originalText = suggestBtn.innerHTML;
+                    suggestBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                    suggestBtn.disabled = true;
+
+                    fetch('/Staff/SuggestTags', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: content })
+                    })
+                    .then(response => {
+                         if (!response.ok) throw new Error("AI Service failed");
+                         return response.json();
+                    })
+                    .then(tags => {
+                        var count = 0;
+                        var matchedTags = [];
+                        var checkboxes = form.querySelectorAll("input[name='SelectedTagIds']");
+                        
+                        checkboxes.forEach(cb => {
+                            var labelElement = cb.labels ? cb.labels[0] : cb.closest('.form-check')?.querySelector('label');
+                            if (labelElement) {
+                                var labelText = labelElement.innerText.trim();
+                                var tagNameFull = labelText.toLowerCase();
+                                var tagWords = tagNameFull.split(/[\s-]+/);
+                                
+                                var isMatch = tags.some(keyword => {
+                                    var kw = keyword.toLowerCase().trim();
+                                    if (kw.length < 3) return false;
+                                    if (tagNameFull.includes(kw) || kw.includes(tagNameFull)) return true;
+                                    return tagWords.some(tWord => {
+                                        if (tWord.length < 3) return false;
+                                        var matchLen = Math.min(tWord.length, kw.length, 4);
+                                        return tWord.substring(0, matchLen) === kw.substring(0, matchLen);
+                                    });
+                                });
+
+                                if (isMatch) {
+                                    if (!cb.checked) {
+                                        cb.checked = true;
+                                        count++;
+                                        matchedTags.push(labelText);
+                                        cb.closest('.form-check')?.classList.add('animate__animated', 'animate__flash');
+                                    }
+                                }
+                            }
+                        });
+
+                        if (count > 0) {
+                            alert("AI matched " + count + " tags: " + matchedTags.join(", "));
+                        } else {
+                            alert("AI processed your content but couldn't find new tag matches.");
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("Failed to get AI suggestions.");
+                    })
+                    .finally(() => {
+                        suggestBtn.innerHTML = originalText;
+                        suggestBtn.disabled = false;
+                    });
+                });
+            }
+        });
+    </script>
 }

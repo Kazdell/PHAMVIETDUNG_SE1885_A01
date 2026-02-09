@@ -17,7 +17,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Controllers
             _service = service;
         }
 
-        [EnableQuery]
+        [EnableQuery(MaxTop = 100, PageSize = 20)]
         [HttpGet]
         public IActionResult Get()
         {

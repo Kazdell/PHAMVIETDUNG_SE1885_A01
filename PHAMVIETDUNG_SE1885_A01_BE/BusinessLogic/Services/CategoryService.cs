@@ -1,3 +1,4 @@
+using LazyCache;
 using PHAMVIETDUNG_SE1885_A01_BE.DataAccess.Models;
 using PHAMVIETDUNG_SE1885_A01_BE.DataAccess.Repositories;
 
@@ -7,16 +8,22 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
     {
         private readonly ICategoryRepository _repository;
         private readonly INewsArticleRepository _newsRepo;
+        private readonly IAppCache _cache;
+        private const string CACHE_KEY = "categories";
 
-        public CategoryService(ICategoryRepository repository, INewsArticleRepository newsRepo)
+        public CategoryService(ICategoryRepository repository, INewsArticleRepository newsRepo, IAppCache cache)
         {
             _repository = repository;
             _newsRepo = newsRepo;
+            _cache = cache;
         }
 
         public IEnumerable<Category> GetAllCategories()
         {
-            return _repository.GetAll();
+            return _cache.GetOrAdd(CACHE_KEY, () => 
+            {
+                return _repository.GetAll().ToList();
+            }, DateTimeOffset.Now.AddMinutes(10));
         }
 
         public IEnumerable<Presentation.Models.CategoryModel> GetCategoriesWithCounts()
@@ -48,6 +55,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             }
 
             _repository.Insert(category);
+            _cache.Remove(CACHE_KEY); // Invalidate cache
         }
 
         public void UpdateCategory(Category category)
@@ -67,6 +75,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
                 existing.ParentCategoryId = category.ParentCategoryId;
                 existing.IsActive = category.IsActive;
                 _repository.Update(existing);
+                _cache.Remove(CACHE_KEY); // Invalidate cache
             }
         }
 
@@ -78,6 +87,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
                 throw new Exception(Common.SystemMessages.GetMessage(Common.SystemMessages.UsedCategoryDeleteError));
             }
              _repository.Delete((short)id);
+             _cache.Remove(CACHE_KEY); // Invalidate cache
         }
 
         public IEnumerable<Category> SearchCategories(string keyword)

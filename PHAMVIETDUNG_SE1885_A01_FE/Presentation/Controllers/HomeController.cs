@@ -39,13 +39,21 @@ namespace PHAMVIETDUNG_SE1885_A01_FE.Controllers
             return View(new List<NewsArticleViewModel>());
         }
 
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> Details(string id, string fromNotification = null)
         {
             if (string.IsNullOrEmpty(id)) return NotFound();
 
             var client = _httpClientFactory.CreateClient("CoreClient");
             var newsResponse = await client.GetAsync($"/api/NewsArticle/{id}");
-            if (!newsResponse.IsSuccessStatusCode) return NotFound();
+            
+            // Handle deleted/not found articles
+            if (!newsResponse.IsSuccessStatusCode)
+            {
+                ViewBag.ArticleNotFound = true;
+                ViewBag.NotificationId = fromNotification;
+                ViewBag.ArticleId = id;
+                return View("ArticleNotFound");
+            }
 
             var content = await newsResponse.Content.ReadAsStringAsync();
             var news = JsonSerializer.Deserialize<NewsArticleViewModel>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });

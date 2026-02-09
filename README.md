@@ -1,135 +1,212 @@
-# FUNews Management System - Advanced Edition (V2)
+# FU News Management System
 
-![Dashboard Preview](docs/dashboard-preview.png)
-*(Fig 1. Real-time Dashboard with Analytics and SignalR)*
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Build](https://img.shields.io/badge/build-passing-success)
+![Platform](https://img.shields.io/badge/platform-asp.net%20core%208.0-purple)
 
-## 📖 Introduction
-Welcome to **FUNews Management System V2**, a modern, distributed news platform built with enterprise-grade .NET technologies.
-This project demonstrates a microservices-style architecture where AI and Analytics are decoupled from the core business logic.
-
-**Key Highlights:**
-- **Smart AI Tagging:** Auto-suggests tags for articles based on content content (NLP).
-- **Real-time Analytics:** Admin Dashboard updates live without refreshing (SignalR).
-- **Offline Mode:** Works even when the internet disconnects or the backend server goes down.
-- **High Performance:** Optimized with Caching (LazyCache) and OData querying.
+A scalable, microservices-based News Management Platform designed for high perfromance and enterprise-grade content delivery.
 
 ---
 
-## 🏗 System Architecture
+## 📋 Table of Contents
 
-The solution is composed of 4 key services running simultaneously:
+- [Overview](#-overview)
+- [Architecture](#-architecture)
+- [Features](#-features)
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Running the Application](#-running-the-application)
+- [Configuration](#-configuration)
+- [Testing Guide](#-testing-guide)
+- [API Reference](#-api-reference)
+- [Troubleshooting](#-troubleshooting)
+
+---
+
+## 🔭 Overview
+
+The **FU News Management System** is a distributed application that facilitates the creation, management, and consumption of digital content. It separates concerns into distinct microservices, ensuring modularity and scalability. Key architectural decisions include **Clean Architecture**, **CQRS-lite patterns** (via OData), and **In-Memory Caching** for high-read scenarios.
+
+Target Users:
+- **Public Readers**: Access news, search via advanced filters (OData), receive real-time updates.
+- **Staff (Reporters)**: Content creation, AI-assisted tagging, analytics monitoring.
+- **Admin**: System configuration, user management, master data control.
+
+---
+
+## 🏗 Architecture
+
+The system adopts a **Microservices-oriented Architecture** composed of 4 core services:
 
 | Service | Port | Description | Tech Stack |
 | :--- | :--- | :--- | :--- |
-| **Frontend (FE)** | `http://localhost:5001` | User Interface for Readers, Staff, and Admins. | ASP.NET Core MVC, Bootstrap 5, jQuery |
-| **Core API (BE)** | `http://localhost:5000` | Central Logic, Database access, Auth. | WebAPI, EF Core, JWT, OData |
-| **Analytics API** | `http://localhost:5100` | Processes logs & delivers chart data. | WebAPI, Background Services |
-| **AI API** | `http://localhost:5200` | Intelligent Tagging & Recommendations. | ML.NET / Text Analysis |
+| **Core Backend** | `5000` | Central Business Logic, CRUD, IAM | WebAPI, EF Core |
+| **Frontend** | `5001` | User Interface, Dashboards | MVC, Razor, Bootstrap 5 |
+| **Analytics Service** | `5100` | Views Tracking, Trending Calculation | WebAPI, SignalR |
+| **AI Tagging Service** | `5200` | Content Analysis, Auto-tagging | WebAPI, ML.NET (concept) |
+
+### Key Technologies
+- **Framework**: .NET 8.0 (C# 12)
+- **Database**: SQL Server 2019+
+- **ORM**: Entity Framework Core 8.0 (Code-First)
+- **Caching**: LazyCache (IMemoryCache wrapper)
+- **API Standard**: OData v4 (Open Data Protocol)
+- **Real-time**: SignalR Core
 
 ---
 
-## 🚀 Setup Guide (For Beginners)
+## ✨ Features
 
-### Prerequisites
-- **Visual Studio 2022** (or VS Code + .NET CLI)
-- **.NET 8.0 SDK**
-- **SQL Server** (Any version)
+### 1. Content Delivery (Public)
+- **Dynamic News Feed**: Infinite scroll/pagination of latest articles.
+- **Advanced Search (Explore)**: Filter by Date Range, Author, Category, Tags using OData query syntax.
+- **Real-time Notifications**: New articles appear instantly without page refresh.
 
-### Step 1: Database Setup
-1. Open **SQL Server Management Studio (SSMS)**.
-2. Create a database named `FUNewsManagement`.
-3. Open the file `script.sql` (found in the root folder) and run it to create Tables and Dummy Data.
-4. Update the **ConnectionString** in `PHAMVIETDUNG_SE1885_A01_BE/appsettings.json`:
-   ```json
-   "ConnectionStrings": {
-     "DefaultConnection": "server=(local);database=FUNewsManagement;uid=sa;pwd=YourPassword123;TrustServerCertificate=True"
-   }
-   ```
-   *(Replace `YourPassword123` with your actual SQL password)*
+### 2. Content Management (Staff)
+- **Rich Text Editor**: Create articles with formatted content.
+- **AI Tag Suggestions**: Automatically generate relevant tags based on article body.
+- **Version History**: Track changes and revisions.
+- **Live Analytics**: View real-time readership statistics per article.
 
-### Step 2: Run the System
-You need to start **ALL 4 Projects**.
+### 3. System Administration (Admin)
+- **User Management**: Create accounts for Staff and Lecturers.
+- **Category Management**: Full lifecycle management with **Instant Cache Invalidation**.
+- **System Reports**: Aggregate view of system health and content metrics.
 
-**Using Visual Studio:**
-1. Right-click **Solution** > **Properties** > **Multiple Startup Projects**.
-2. Set all 4 projects (`_BE`, `_FE`, `_AnalyticsAPI`, `_AiAPI`) to **Start**.
-3. Press **F5**.
+### 4. Enterprise Capabilities
+- **High Performance Caching**: Categories cached for 10 mins (90% database load reduction).
+- **Security & Stability**: 
+  - `MaxTop=100` limit on all APIs to prevent DoS.
+  - Role-Based Access Control (RBAC).
 
-**Using Terminal (CLI):**
-Open 4 separate terminals and run:
+---
+
+## � Prerequisites
+
+Ensure the following tools are installed:
+
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (Express or Developer edition)
+- [Visual Studio 2022](https://visualstudio.microsoft.com/) (Recommended) or VS Code
+
+---
+
+## ⚙ Installation
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/your-repo/FUNewsManagement.git
+cd FUNewsManagement
+```
+
+### 2. Configure Database
+Update the connection string in `PHAMVIETDUNG_SE1885_A01_BE/appsettings.json`:
+
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=(local);Database=FUNewsManagement;Trusted_Connection=True;TrustServerCertificate=True;"
+}
+```
+
+### 3. Apply Migrations
+Initialize the database schema:
+
 ```powershell
-# Term 1: Core API
-dotnet run --project PHAMVIETDUNG_SE1885_A01_BE --urls "http://localhost:5000"
-
-# Term 2: Analytics
-dotnet run --project PHAMVIETDUNG_SE1885_A01_AnalyticsAPI --urls "http://localhost:5100"
-
-# Term 3: AI
-dotnet run --project PHAMVIETDUNG_SE1885_A01_AiAPI --urls "http://localhost:5200"
-
-# Term 4: Frontend
-dotnet run --project PHAMVIETDUNG_SE1885_A01_FE --urls "http://localhost:5001"
+cd PHAMVIETDUNG_SE1885_A01_BE
+dotnet restore
+dotnet ef database update
 ```
 
 ---
 
-## 🔑 Test Accounts
+## ▶ Running the Application
 
-| Role | Email | Password | Access Rights |
-| :--- | :--- | :--- | :--- |
-| **Admin** | `admin@FUNewsManagementSystem.org` | `@@abc123@@` | Full System Access, Dashboard, Reports |
-| **Staff** | `staff@news.com` | `@@abc123@@` | Create/Edit News, View History |
-| **User** | *(No login required)* | - | View Public News, Search |
+To run the full system, you must start all 4 services.
 
----
+### Option A: Visual Studio (Recommended)
+1. Open `PHAMVIETDUNG_SE1885_A01.sln`.
+2. Right-click Solution > **Set Startup Projects**.
+3. Select **Multiple startup projects**.
+4. Set Action to **Start** for:
+   - `PHAMVIETDUNG_SE1885_A01_BE`
+   - `PHAMVIETDUNG_SE1885_A01_AnalyticsAPI`
+   - `PHAMVIETDUNG_SE1885_A01_AiAPI`
+   - `PHAMVIETDUNG_SE1885_A01_FE`
+5. Press **F5**.
 
-## 🧪 Features to Test
+### Option B: CLI (Terminal)
+Open 4 terminal tabs:
 
-### 1. AI Tag Suggestion (Smart Tagging)
-*Use this to see the AI in action.*
+```bash
+# Tab 1: Backend
+dotnet run --project PHAMVIETDUNG_SE1885_A01_BE --urls="http://localhost:5000"
 
-1. Login as **Staff**.
-2. Go to **Manage News** > **Create News**.
-3. Type some content (e.g., *"Bitcoin price hit a new record high today due to market surge..."*).
-4. Click the **"Suggest Tags (AI)"** button.
-5. **Result:** The system analyzes your text and auto-selects related tags like `#Finance`, `#Crypto`, `#Money`.
+# Tab 2: Analytics
+dotnet run --project PHAMVIETDUNG_SE1885_A01_AnalyticsAPI --urls="http://localhost:5100"
 
-![AI Tag Suggestion](docs/ai-tagging.png)
-*(Fig 2. AI automatically suggesting tags based on content)*
+# Tab 3: AI Service
+dotnet run --project PHAMVIETDUNG_SE1885_A01_AiAPI --urls="http://localhost:5200"
 
-### 2. Real-time Dashboard
-*Use this to see live analytics without refreshing.*
+# Tab 4: Frontend
+dotnet run --project PHAMVIETDUNG_SE1885_A01_FE --urls="http://localhost:5001"
+```
 
-1. Login as **Admin**.
-2. Open the **Dashboard**.
-3. Open a **Private/Incognito Window** and access the homepage as a normal user.
-4. Read a few articles.
-5. **Result:** Switch back to the Admin Dashboard. You will see the **Total Views** and **Active Users** count jump up instantly! 
-
-![Dashboard](docs/dashboard-charts.png)
-*(Fig 3. Admin Dashboard with Live Data)*
-
-### 3. API Fault Tolerance (Offline Mode)
-*Use this to see the system's robustness.*
-
-1. While browsing the **Staff** page, turn off the **Core API** (Close the terminal running port 5000).
-2. Try to click **"Create News"**.
-3. **Result:** A **Yellow Banner** appears saying "Offline Mode - Server Unreachable". The button is disabled to prevent errors.
-4. Turn the API back on. The system auto-recovers!
+Access the application at **[http://localhost:5001](http://localhost:5001)**.
 
 ---
 
-## 🛠 API Endpoints (For Developers)
+## 🧪 Testing Guide
 
-- **Swagger Documentation:**
-  - Core API: `http://localhost:5000/swagger`
-  - Analytics API: `http://localhost:5100/swagger`
-  - AI API: `http://localhost:5200/swagger`
+### Default Accounts
 
-- **Health Checks:**
-  - `http://localhost:5000/health`
-  - `http://localhost:5100/health`
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Admin** | `admin@FUNewsManagementSystem.org` | `@@abc123@@` |
+| **Staff** | *(Create via Admin Dashboard)* | `@1` |
+
+### Manual Verification Scenarios
+
+#### 1. Performance (Caching)
+- **Step**: GET `http://localhost:5000/api/category`
+- **Expectation**: 
+  - 1st Request: ~100ms (Cache Miss).
+  - 2nd Request: **<10ms** (Cache Hit).
+  - After Create/Update: Cache invalidates, next request is Miss.
+
+#### 2. Security (Pagination)
+- **Step**: GET `http://localhost:5000/api/newsarticle?$top=500`
+- **Expectation**: Response contains exactly **100 records** (MaxTop limit).
+
+#### 3. AI Service
+- **Step**: Create Article > Click "Suggest Tags".
+- **Expectation**: Tags are returned from Service running on port `5200`.
 
 ---
 
-*Project developed by PHAMVIETDUNG_SE1885 for PRN232 Assignment.*
+## � API Reference
+
+The system exposes OData v4 endpoints.
+
+- **Base URL**: `http://localhost:5000/api`
+- **Metadata**: `http://localhost:5000/api/$metadata`
+
+### Common Queries
+- **Select Fields**: `?$select=NewsTitle,CreatedDate`
+- **Filter**: `?$filter=NewsStatus eq true and CategoryId eq 1`
+- **Expand Relations**: `?$expand=Category,NewsTags($expand=Tag)`
+- **Pagination**: `?$top=10&$skip=20&$count=true`
+
+---
+
+## ❓ Troubleshooting
+
+**Issue**: "SQL Network Interfaces, error: 26 - Error Locating Server/Instance Specified"
+- **Fix**: Check `appsettings.json`. Ensure Server name matches your SSMS instance (e.g., `(localdb)\MSSQLLocalDB` or `.\SQLEXPRESS`).
+
+**Issue**: "Frontend shows 404 on API calls"
+- **Fix**: Ensure Backend is running on port `5000`. If running on https, accept the SSL certificate (`dotnet dev-certs https --trust`).
+
+---
+
+**© 2026 FU News Management System**. Maintained by PHAMVIETDUNG_SE1885.

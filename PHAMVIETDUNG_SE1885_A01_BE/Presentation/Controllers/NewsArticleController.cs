@@ -13,13 +13,18 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Controllers
         private readonly INewsArticleService _service;
         private readonly IWebHostEnvironment _environment; // Injected IWebHostEnvironment
 
+        #region Constants
+        private const int MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+        private static readonly string[] ALLOWED_IMAGE_EXTENSIONS = { ".jpg", ".jpeg", ".png", ".gif" };
+        #endregion
+
         public NewsArticleController(INewsArticleService service, IWebHostEnvironment environment)
         {
             _service = service;
             _environment = environment;
         }
 
-        [EnableQuery]
+        [EnableQuery(MaxTop = 100, PageSize = 20)]
         [HttpGet]
         public IActionResult Get()
         {
@@ -133,15 +138,14 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.Presentation.Controllers
             if (file == null || file.Length == 0) return null;
 
             // 1. Validate Size (Max 5MB)
-            if (file.Length > 5 * 1024 * 1024)
+            if (file.Length > MAX_FILE_SIZE_BYTES)
             {
                 throw new Exception("File size exceeds the 5MB limit.");
             }
 
             // 2. Validate Type
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!allowedExtensions.Contains(extension))
+            if (!ALLOWED_IMAGE_EXTENSIONS.Contains(extension))
             {
                 throw new Exception("Invalid file type. Only JPG, JPEG, PNG, and GIF are allowed.");
             }

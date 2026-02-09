@@ -83,6 +83,19 @@
                                     <input asp-for="NewsSource" class="form-control" placeholder="e.g. CNN, BBC" />
                                     <span asp-validation-for="NewsSource" class="text-danger small"></span>
                                 </div>
+                                
+                                <div class="form-group mb-0">
+                                    <label class="form-label small text-muted d-block mb-2">Status</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="newsStatusSwitch" 
+                                               name="NewsStatus" value="true" checked>
+                                        <input type="hidden" name="NewsStatus" value="false" />
+                                        <label class="form-check-label" for="newsStatusSwitch" id="statusLabel">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle">Published</span>
+                                        </label>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">Toggle to save as draft or publish immediately</small>
+                                </div>
                             </div>
                         </div>
 
@@ -138,7 +151,22 @@
         var list = document.getElementById("CategoryList");
         var items = list.querySelectorAll(".category-item");
 
+        // Status Toggle Logic
+        var statusSwitch = document.getElementById("newsStatusSwitch");
+        var statusLabel = document.getElementById("statusLabel");
+        
+        if (statusSwitch && statusLabel) {
+            statusSwitch.addEventListener("change", function() {
+                if (this.checked) {
+                    statusLabel.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle">Published</span>';
+                } else {
+                    statusLabel.innerHTML = '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Draft</span>';
+                }
+            });
+        }
+
         if(searchInput && list) {
+            // ... rest of existing code ...
              searchInput.addEventListener("focus", function() {
                 list.style.display = "block";
             });

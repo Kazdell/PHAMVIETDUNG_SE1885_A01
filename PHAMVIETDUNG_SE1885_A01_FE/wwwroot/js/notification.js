@@ -84,8 +84,8 @@ function loadNotifications() {
             data.forEach(note => {
                 if (!note.isRead) unreadCount++;
 
-                // Determine link: if articleId exists, link to article detail page
-                const articleLink = note.articleId ? `/Home/Details/${note.articleId}` : '#';
+                // Determine link: if articleId exists, link to article detail page with notification ID
+                const articleLink = note.articleId ? `/Home/Details/${note.articleId}?fromNotification=${note.notificationId}` : '#';
                 const hasLink = note.articleId != null;
 
                 var itemHtml = `

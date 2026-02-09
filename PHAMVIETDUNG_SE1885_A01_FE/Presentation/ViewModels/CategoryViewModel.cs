@@ -16,7 +16,7 @@ public class CategoryViewModel
 
     public short? ParentCategoryId { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    public bool? IsActive { get; set; } = true;
 
     public int ArticleCount { get; set; }
 }

@@ -677,6 +677,56 @@ public class StaffController : Controller
         {
             var content = await response.Content.ReadAsStringAsync();
             var account = JsonSerializer.Deserialize<SystemAccountViewModel>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            
+            // Fetch article statistics for Quick Stats
+            try
+            {
+                // Get total articles by this user
+                var totalResponse = await client.GetAsync($"/api/NewsArticle/Report?createdById={id}&pageSize=1");
+                if (totalResponse.IsSuccessStatusCode)
+                {
+                    var totalContent = await totalResponse.Content.ReadAsStringAsync();
+                    var totalResult = JsonSerializer.Deserialize<ReportResult>(totalContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    ViewBag.TotalArticles = totalResult?.TotalRecords ?? 0;
+                }
+                else
+                {
+                    ViewBag.TotalArticles = 0;
+                }
+                
+                // Get published articles count (NewsStatus = true)
+                var publishedResponse = await client.GetAsync($"/api/NewsArticle/Report?createdById={id}&newsStatus=true&pageSize=1");
+                if (publishedResponse.IsSuccessStatusCode)
+                {
+                    var publishedContent = await publishedResponse.Content.ReadAsStringAsync();
+                    var publishedResult = JsonSerializer.Deserialize<ReportResult>(publishedContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    ViewBag.PublishedArticles = publishedResult?.TotalRecords ?? 0;
+                }
+                else
+                {
+                    ViewBag.PublishedArticles = 0;
+                }
+                
+                // Get draft articles count (NewsStatus = false)
+                var draftResponse = await client.GetAsync($"/api/NewsArticle/Report?createdById={id}&newsStatus=false&pageSize=1");
+                if (draftResponse.IsSuccessStatusCode)
+                {
+                    var draftContent = await draftResponse.Content.ReadAsStringAsync();
+                    var draftResult = JsonSerializer.Deserialize<ReportResult>(draftContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    ViewBag.DraftArticles = draftResult?.TotalRecords ?? 0;
+                }
+                else
+                {
+                    ViewBag.DraftArticles = 0;
+                }
+            }
+            catch
+            {
+                ViewBag.TotalArticles = 0;
+                ViewBag.PublishedArticles = 0;
+                ViewBag.DraftArticles = 0;
+            }
+            
             return View(account);
         }
         return NotFound();

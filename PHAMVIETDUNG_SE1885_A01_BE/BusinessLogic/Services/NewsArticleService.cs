@@ -133,28 +133,19 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
                 existing.ModifiedDate = DateTime.Now;
                 
                 _repository.Update(existing);
-
-                // Audit (awaited)
                 await _auditService.LogActionAsync(GetCurrentUserEmail(), "Update", "NewsArticle", news.NewsArticleId, oldValues, news);
-
-                // Update Tags
                 if (tagIds != null)
                 {
-                    // Remove existing tags
                     var currentTags = _newsTagRepo.GetAll().Where(nt => nt.NewsArticleId == news.NewsArticleId).ToList();
                     foreach (var tag in currentTags)
                     {
                          _newsTagRepo.Delete(tag);
                     }
-
-                    // Add new tags
                     foreach (var tagId in tagIds)
                     {
                          _newsTagRepo.Insert(new NewsTag { NewsArticleId = news.NewsArticleId, TagId = tagId });
                     }
                 }
-                
-                // Notification
                 await _hubContext.Clients.All.SendAsync("ReceiveArticleUpdate", news.NewsTitle);
             }
         }
@@ -168,8 +159,6 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             {
                 throw new InvalidOperationException(Common.SystemMessages.GetMessage(Common.SystemMessages.ActiveArticleDeleteError));
             }
-
-            // Manual Cascade Delete for NewsTags
             var tags = _newsTagRepo.GetAll().Where(nt => nt.NewsArticleId == id).ToList();
             foreach (var tag in tags)
             {
@@ -177,8 +166,6 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             }
 
             _repository.Delete(id);
-
-            // Audit (awaited)
             await _auditService.LogActionAsync(GetCurrentUserEmail(), "Delete", "NewsArticle", id, null, null);
         }
 
@@ -195,18 +182,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
         {
             var currentNews = _repository.GetById(newsId);
             if (currentNews == null) return new List<NewsArticle>();
-
-            // Ensure we have current tags. Repository might lazy load or we query
             var currentTagIds = _newsTagRepo.GetAll().Where(nt => nt.NewsArticleId == newsId).Select(nt => nt.TagId).ToList();
-
-            // Logic: Same Category OR Common Tag
-            // Note: EF Core evaluation might be complex if not careful.
-            // Using in-memory for simpler logic if dataset small, or composed query.
-            // Since repo is Generic and returns IEnumerable (or IQueryable depending on implementation, here IEnumerable from GetAll), 
-            // we might be doing client-side evaluation. 
-            // Better to use IQueryable if possible, but Repository returns IEnumerable.
-            // We'll proceed with Client-side for now as per architecture.
-            
             var allActive = _repository.GetAll().Where(n => n.NewsStatus == true && n.NewsArticleId != newsId);
             
             return allActive.Where(n => 
@@ -274,8 +250,6 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
             var activeCount = query.Count(n => n.NewsStatus == true);
             var inactiveCount = query.Count(n => n.NewsStatus == false);
             
-            // Should be done before Paging? Pagination applies to the list of articles. Stats apply to the filtered set.
-            
             // Pagination & Sorting
             var articleEntities = query.OrderByDescending(n => n.CreatedDate)
                                 .Skip((page - 1) * pageSize)
@@ -291,7 +265,7 @@ namespace PHAMVIETDUNG_SE1885_A01_BE.BusinessLogic.Services
                 NewsContent = n.NewsContent,
                 NewsSource = n.NewsSource,
                 CategoryId = n.CategoryId,
-                CategoryName = n.Category?.CategoryName, // Reliance on Lazy Loading or custom loading. If GenericRepo includes it.
+                CategoryName = n.Category?.CategoryName,
                 NewsStatus = n.NewsStatus,
                 CreatedById = n.CreatedById,
                 CreatedByName = n.CreatedBy?.AccountName,
