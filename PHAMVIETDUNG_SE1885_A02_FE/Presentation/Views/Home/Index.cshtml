@@ -1,0 +1,181 @@
+﻿@model IEnumerable<PHAMVIETDUNG_SE1885_A02_FE.Presentation.ViewModels.NewsArticleViewModel>
+
+@{
+    ViewData["Title"] = "Home Page";
+    var featured = Model?.FirstOrDefault();
+    var others = Model?.Skip(1).ToList();
+}
+
+<!-- Hero Section -->
+@if (featured != null)
+{
+    var heroImage = !string.IsNullOrEmpty(featured.NewsImage) 
+        ? (featured.NewsImage.StartsWith("http") ? featured.NewsImage : $"http://localhost:5000{featured.NewsImage}") 
+        : $"https://picsum.photos/seed/{featured.NewsArticleId}/1200/600";
+    <div class="card border-0 shadow-xl rounded-4 mb-5 overflow-hidden position-relative" style="min-height: 500px;">
+        <!-- Background Image -->
+        <div class="position-absolute top-0 start-0 w-100 h-100" 
+             style="background-image: url('@heroImage'); background-size: cover; background-position: center; transition: transform 0.5s ease;">
+        </div>
+        
+        <!-- Gradient Overlay -->
+        <div class="position-absolute bottom-0 start-0 w-100 h-100" 
+             style="background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);">
+        </div>
+
+        <!-- Content -->
+        <div class="position-absolute bottom-0 start-0 p-5 w-100 text-white" style="z-index: 2;">
+            <div class="container-fluid px-0" style="max-width: 900px; margin: 0;">
+                <span class="badge bg-primary mb-3 px-3 py-2 rounded-pill shadow-sm">Featured Story</span>
+                <h1 class="display-4 fw-bold mb-3 text-shadow" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">@featured.NewsTitle</h1>
+                <p class="lead mb-4 text-white-50" style="text-shadow: 0 1px 2px rgba(0,0,0,0.5); max-width: 700px;">@featured.Headline</p>
+                <a asp-action="Details" asp-route-id="@featured.NewsArticleId" class="btn btn-light rounded-pill px-4 py-2 fw-bold text-primary shadow-lg hover-scale">
+                    Read Article <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <h1 class="display-4 fw-bold text-primary">FUNews</h1>
+        <p class="lead text-muted">Your daily source of verified news.</p>
+    </div>
+}
+
+<!-- News Grid -->
+<div class="row g-4">
+    <div class="col-12 mb-2">
+        <h3 class="fw-bold border-bottom pb-2">Latest Stories</h3>
+    </div>
+
+    @if (others != null && others.Any())
+    {
+        @foreach (var item in others)
+        {
+            var cardImage = !string.IsNullOrEmpty(item.NewsImage) 
+                ? (item.NewsImage.StartsWith("http") ? item.NewsImage : $"http://localhost:5000{item.NewsImage}") 
+                : $"https://picsum.photos/seed/{item.NewsArticleId}/400/250";
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift overflow-hidden">
+                    <a asp-action="Details" asp-route-id="@item.NewsArticleId">
+                        <img src="@cardImage" alt="@item.NewsTitle" class="card-img-top" style="height: 180px; object-fit: cover;" />
+                    </a>
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-light text-primary border">@(item.Category?.CategoryName ?? "News")</span>
+                            <small class="text-muted">@item.CreatedDate?.ToString("MMM dd")</small>
+                        </div>
+                        <h5 class="card-title fw-bold mb-3">
+                            <a asp-action="Details" asp-route-id="@item.NewsArticleId" class="text-dark text-decoration-none stretched-link">
+                                @item.NewsTitle
+                            </a>
+                        </h5>
+                        <p class="card-text text-muted flex-grow-1 text-truncate">@item.Headline</p>
+                        
+                        <div class="mt-3">
+                            @if (item.NewsTags != null)
+                            {
+                                foreach (var nt in item.NewsTags.Take(2))
+                                {
+                                    <span class="badge bg-secondary opacity-75 me-1" style="font-size: 0.7rem;">#@nt.Tag?.TagName</span>
+                                }
+                                if (item.NewsTags.Count > 2)
+                                {
+                                    <small class="text-muted" style="font-size: 0.7rem;">+@(item.NewsTags.Count - 2)</small>
+                                }
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0 pb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px;">
+                                <i class="bi bi-person-fill text-white" style="font-size: 0.75rem;"></i>
+                            </div>
+                            <small class="text-muted">By @(item.CreatedBy?.AccountName ?? "System")</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else if (featured == null)
+    {
+         <div class="col-12">
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-1"></i>
+                <p class="mt-2">No news articles available.</p>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Save data to cache when online
+            if (OfflineManager.getStatus()) {
+                const newsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+                OfflineManager.saveToCache('news_list', newsData);
+                console.log('News data cached successfully');
+            }
+
+            // 2. Load data from cache when offline
+            window.addEventListener('offlineDataLoaded', function(e) {
+                const data = e.detail;
+                if (!data || data.length === 0) return;
+
+                const container = document.querySelector('.row.g-4');
+                if (!container) return; // Should not happen
+
+                // Clear existing content (which might be "No news available" or partial)
+                // Actually, we should probably only replace if the current view is empty or shows error
+                // But for simplicity, let's re-render the grid
+                
+                let html = '<div class="col-12 mb-2"><h3 class="fw-bold border-bottom pb-2">Latest Stories (Offline Cache)</h3></div>';
+                
+                data.forEach(item => {
+                    const cardImage = item.NewsImage 
+                        ? (item.NewsImage.startsWith("http") ? item.NewsImage : `http://localhost:5000${item.NewsImage}`)
+                        : `https://picsum.photos/seed/${item.NewsArticleId}/400/250`;
+                        
+                    const categoryName = item.Category ? item.Category.CategoryName : "News";
+                    const authorName = item.CreatedBy ? item.CreatedBy.AccountName : "System";
+                    const dateStr = item.CreatedDate ? new Date(item.CreatedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit' }) : "";
+
+                    html += `
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm hover-lift overflow-hidden">
+                            <a href="/Home/Details/${item.NewsArticleId}">
+                                <img src="${cardImage}" alt="${item.NewsTitle}" class="card-img-top" style="height: 180px; object-fit: cover;" />
+                            </a>
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-light text-primary border">${categoryName}</span>
+                                    <small class="text-muted">${dateStr}</small>
+                                </div>
+                                <h5 class="card-title fw-bold mb-3">
+                                    <a href="/Home/Details/${item.NewsArticleId}" class="text-dark text-decoration-none stretched-link">
+                                        ${item.NewsTitle}
+                                    </a>
+                                </h5>
+                                <p class="card-text text-muted flex-grow-1 text-truncate">${item.Headline || ''}</p>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 pt-0 pb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px;">
+                                        <i class="bi bi-person-fill text-white" style="font-size: 0.75rem;"></i>
+                                    </div>
+                                    <small class="text-muted">By ${authorName}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+
+                container.innerHTML = html;
+            });
+        });
+    </script>
+}

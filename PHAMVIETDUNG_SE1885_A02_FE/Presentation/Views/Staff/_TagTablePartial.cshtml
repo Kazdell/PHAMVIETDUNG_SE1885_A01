@@ -1,0 +1,74 @@
+@model IEnumerable<PHAMVIETDUNG_SE1885_A02_FE.Presentation.ViewModels.TagViewModel>
+
+<table class="table table-hover align-middle mb-0">
+    <thead class="bg-light text-uppercase small fw-bold text-muted">
+        <tr>
+            <th class="ps-4 py-3 border-bottom-0">Name</th>
+            <th class="py-3 border-bottom-0">Note</th>
+            <th class="text-end pe-4 py-3 border-bottom-0">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var item in Model) {
+                <tr class="transition-row">
+                    <td class="ps-4 py-3">
+                        <span class="badge bg-light text-dark border border-secondary-subtle rounded-pill px-3 py-2 fw-normal">
+                             <i class="bi bi-hash text-muted me-1"></i>@item.TagName
+                        </span>
+                    </td>
+                    <td class="text-muted small">@item.Note</td>
+                    <td class="text-end pe-4">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="News" asp-route-tagId="@item.TagId" 
+                               class="btn btn-sm btn-white border shadow-sm hover-info" data-bs-toggle="tooltip" title="View Articles">
+                                <i class="bi bi-newspaper text-info"></i>
+                            </a>
+                            <button type="button" onclick="loadModal('@Url.Action("EditTag", "Staff", new { id = item.TagId })', 'Edit Tag')" 
+                                    class="btn btn-sm btn-white border shadow-sm hover-warning" data-bs-toggle="tooltip" title="Edit Tag">
+                                <i class="bi bi-pencil-fill text-warning"></i>
+                            </button>
+                            <a asp-action="DeleteTag" asp-route-id="@item.TagId" 
+                               class="btn btn-sm btn-white border shadow-sm hover-danger" data-bs-toggle="tooltip" title="Delete Tag"
+                               onclick="return confirm('Are you sure you want to delete this tag?');">
+                                <i class="bi bi-trash-fill text-danger"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="3" class="text-center py-5">
+                    <div class="text-muted opacity-50 mb-2">
+                        <i class="bi bi-inbox display-4"></i>
+                    </div>
+                    <h6 class="text-muted fw-bold">No tags found</h6>
+                    <p class="small text-muted mb-0">Try adjusting your search criteria.</p>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<style>
+    .btn-white { background-color: white; }
+    .hover-info:hover { border-color: var(--bs-info) !important; background-color: var(--bs-info); }
+    .hover-info:hover i { color: white !important; }
+    .hover-warning:hover { border-color: var(--bs-warning) !important; background-color: var(--bs-warning); }
+    .hover-warning:hover i { color: white !important; }
+    .hover-danger:hover { border-color: var(--bs-danger) !important; background-color: var(--bs-danger); }
+    .hover-danger:hover i { color: white !important; }
+    .transition-row { transition: background-color 0.2s; }
+    .transition-row:hover { background-color: rgba(var(--bs-primary-rgb), 0.02); }
+</style>
+
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>

@@ -1,0 +1,310 @@
+@{
+    ViewData["Title"] = "System Report";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3"><i class="bi bi-bar-chart me-2"></i>System Report</h1>
+    <a href="@Url.Action("ExportReports", "Admin")" class="btn btn-success" data-requires-online="true">
+        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+    </a>
+</div>
+
+<!-- Filter Section -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form id="filterForm" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-medium">From Date</label>
+                <input type="date" id="fromDate" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-medium">To Date</label>
+                <input type="date" id="toDate" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-medium">Status</label>
+                <select id="statusFilter" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="true">Active Only</option>
+                    <option value="false">Inactive Only</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="button" id="applyFilter" class="btn btn-primary" data-requires-online="true">
+                    <i class="bi bi-funnel me-1"></i>Apply Filter
+                </button>
+                <button type="button" id="clearFilter" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>Clear
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading Indicator -->
+<div id="loadingIndicator" class="text-center py-4 d-none">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
+<!-- Stats Cards (3 cards: Articles, Categories, Authors) -->
+<div class="row mb-4" id="statsRow">
+    <div class="col-md-4">
+        <div class="card text-white shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1 small opacity-75">Total Articles</h6>
+                        <h2 class="display-5 fw-bold mb-0" id="totalArticles">-</h2>
+                    </div>
+                    <i class="bi bi-newspaper fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white shadow-sm h-100" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1 small opacity-75">Categories</h6>
+                        <h2 class="display-5 fw-bold mb-0" id="totalCategories">-</h2>
+                    </div>
+                    <i class="bi bi-folder fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1 small opacity-75">Authors</h6>
+                        <h2 class="display-5 fw-bold mb-0" id="totalAuthors">-</h2>
+                    </div>
+                    <i class="bi bi-people fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row: Category + Author -->
+<div class="row">
+    <!-- News by Category (Doughnut) -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-bottom-0 py-3">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-pie-chart me-2"></i>News by Category</h5>
+            </div>
+            <div class="card-body" style="height: 350px;" id="categoryChartContainer">
+                <div id="categoryEmptyMessage" class="text-center text-muted py-5 d-none">
+                    <i class="bi bi-inbox fs-1"></i>
+                    <p class="mt-2">No data available</p>
+                </div>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- News by Author (Bar) -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-bottom-0 py-3">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-people me-2"></i>News by Author</h5>
+            </div>
+            <div class="card-body" style="height: 350px;" id="authorChartContainer">
+                <div id="authorEmptyMessage" class="text-center text-muted py-5 d-none">
+                    <i class="bi bi-inbox fs-1"></i>
+                    <p class="mt-2">No data available</p>
+                </div>
+                <canvas id="authorChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let categoryChart = null;
+        let authorChart = null;
+        const analyticsApiUrl = '@ViewBag.AnalyticsApiUrl';
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            // Load initial data
+            loadDashboardData();
+            
+            // Filter button events
+            document.getElementById('applyFilter').addEventListener('click', loadDashboardData);
+            document.getElementById('clearFilter').addEventListener('click', function() {
+                document.getElementById('fromDate').value = '';
+                document.getElementById('toDate').value = '';
+                document.getElementById('statusFilter').value = '';
+                loadDashboardData();
+            });
+        });
+        
+        async function loadDashboardData() {
+            const loading = document.getElementById('loadingIndicator');
+            loading.classList.remove('d-none');
+            
+            try {
+                // Build query parameters
+                const params = new URLSearchParams();
+                const fromDate = document.getElementById('fromDate').value;
+                const toDate = document.getElementById('toDate').value;
+                const status = document.getElementById('statusFilter').value;
+                
+                if (fromDate) params.append('fromDate', fromDate);
+                if (toDate) params.append('toDate', toDate);
+                if (status !== '') params.append('status', status);
+                
+                // Call Analytics API via proxy
+                const response = await fetch(`/Admin/GetDashboardStats?${params.toString()}`);
+                const data = await response.json();
+                
+                console.log("Analytics API Response:", data);
+                
+                // Update stats cards
+                document.getElementById('totalArticles').innerText = data.totalArticles ?? data.TotalArticles ?? 0;
+                document.getElementById('totalCategories').innerText = data.totalCategories ?? data.TotalCategories ?? 0;
+                document.getElementById('totalAuthors').innerText = data.totalAuthors ?? data.TotalAuthors ?? 0;
+                
+                // Update category chart
+                const categories = data.topCategories ?? data.TopCategories ?? [];
+                updateCategoryChart(categories);
+                
+                // Update author chart
+                const authors = data.topAuthors ?? data.TopAuthors ?? [];
+                updateAuthorChart(authors);
+                
+            } catch (error) {
+                console.error("Error loading dashboard:", error);
+                document.getElementById('totalArticles').innerText = 'Error';
+                document.getElementById('totalCategories').innerText = 'Error';
+                document.getElementById('totalAuthors').innerText = 'Error';
+            } finally {
+                loading.classList.add('d-none');
+            }
+        }
+        
+        function updateCategoryChart(categories) {
+            const ctx = document.getElementById('categoryChart');
+            const emptyMsg = document.getElementById('categoryEmptyMessage');
+            
+            if (categoryChart) {
+                categoryChart.destroy();
+                categoryChart = null;
+            }
+            
+            if (categories.length === 0) {
+                ctx.style.display = 'none';
+                emptyMsg.classList.remove('d-none');
+                return;
+            }
+            
+            ctx.style.display = 'block';
+            emptyMsg.classList.add('d-none');
+            
+            const colors = [
+                '#667eea', '#4facfe', '#f093fb', '#43e97b', '#fa709a',
+                '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'
+            ];
+            
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categories.map(x => x.category ?? x.Category),
+                    datasets: [{
+                        data: categories.map(x => x.count ?? x.Count),
+                        backgroundColor: colors.slice(0, categories.length),
+                        borderWidth: 0,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { 
+                                padding: 20, 
+                                usePointStyle: true,
+                                font: { size: 13 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.raw / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.raw} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateAuthorChart(authors) {
+            const ctx = document.getElementById('authorChart');
+            const emptyMsg = document.getElementById('authorEmptyMessage');
+            
+            if (authorChart) {
+                authorChart.destroy();
+                authorChart = null;
+            }
+            
+            if (authors.length === 0) {
+                ctx.style.display = 'none';
+                emptyMsg.classList.remove('d-none');
+                return;
+            }
+            
+            ctx.style.display = 'block';
+            emptyMsg.classList.add('d-none');
+            
+            const colors = [
+                '#f093fb', '#667eea', '#4facfe', '#43e97b', '#fa709a',
+                '#e74a3b', '#f6c23e', '#36b9cc', '#1cc88a', '#4e73df'
+            ];
+            
+            authorChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: authors.map(x => x.author ?? x.Author ?? 'Unknown'),
+                    datasets: [{
+                        label: 'Articles',
+                        data: authors.map(x => x.count ?? x.Count ?? 0),
+                        backgroundColor: colors.slice(0, authors.length),
+                        borderRadius: 6,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: { stepSize: 1 }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}

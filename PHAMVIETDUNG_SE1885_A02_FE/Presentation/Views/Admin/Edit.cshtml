@@ -1,0 +1,56 @@
+@model PHAMVIETDUNG_SE1885_A02_FE.Presentation.ViewModels.SystemAccountViewModel
+
+@{
+    ViewData["Title"] = "Edit Account";
+}
+
+<h1>Edit Account</h1>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-0">
+             <div class="card-header bg-white py-3">
+                 <h5 class="mb-0 text-primary fw-bold">Edit Account Details</h5>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="AccountId" />
+                    <div class="form-group mb-3">
+                        <label asp-for="AccountName" class="control-label fw-semibold mb-1">Full Name</label>
+                        <input asp-for="AccountName" class="form-control" />
+                        <span asp-validation-for="AccountName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mb-3">
+                         <label asp-for="AccountEmail" class="control-label fw-semibold mb-1">Email Address</label>
+                        <input asp-for="AccountEmail" class="form-control" />
+                        <span asp-validation-for="AccountEmail" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mb-3">
+                         <label asp-for="AccountRole" class="control-label fw-semibold mb-1">Role</label>
+                         <select asp-for="AccountRole" class="form-select">
+                            <option value="1">Staff</option>
+                            <option value="2">Lecturer</option>
+                            <option value="0">Admin</option>
+                        </select>
+                        <span asp-validation-for="AccountRole" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mb-3">
+                         <label asp-for="AccountPassword" class="control-label fw-semibold mb-1">Password</label>
+                        <input asp-for="AccountPassword" type="text" class="form-control" placeholder="Leave empty to keep current" />
+                        <span asp-validation-for="AccountPassword" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a asp-action="Accounts" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary" data-requires-online="true">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,4 +1,4 @@
-# FU News Management System
+﻿# FU News Management System
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -101,7 +101,7 @@ cd FUNewsManagement
 ```
 
 ### 2. Configure Database
-Update the connection string in `PHAMVIETDUNG_SE1885_A01_BE/appsettings.json`:
+Update the connection string in `PHAMVIETDUNG_SE1885_A02_BE/appsettings.json`:
 
 ```json
 "ConnectionStrings": {
@@ -113,7 +113,7 @@ Update the connection string in `PHAMVIETDUNG_SE1885_A01_BE/appsettings.json`:
 Initialize the database schema:
 
 ```powershell
-cd PHAMVIETDUNG_SE1885_A01_BE
+cd PHAMVIETDUNG_SE1885_A02_BE
 dotnet restore
 dotnet ef database update
 ```
@@ -125,14 +125,14 @@ dotnet ef database update
 To run the full system, you must start all 4 services.
 
 ### Option A: Visual Studio (Recommended)
-1. Open `PHAMVIETDUNG_SE1885_A01.sln`.
+1. Open `PHAMVIETDUNG_SE1885_A02.sln`.
 2. Right-click Solution > **Set Startup Projects**.
 3. Select **Multiple startup projects**.
 4. Set Action to **Start** for:
-   - `PHAMVIETDUNG_SE1885_A01_BE`
-   - `PHAMVIETDUNG_SE1885_A01_AnalyticsAPI`
-   - `PHAMVIETDUNG_SE1885_A01_AiAPI`
-   - `PHAMVIETDUNG_SE1885_A01_FE`
+   - `PHAMVIETDUNG_SE1885_A02_BE`
+   - `PHAMVIETDUNG_SE1885_A02_AnalyticsAPI`
+   - `PHAMVIETDUNG_SE1885_A02_AiAPI`
+   - `PHAMVIETDUNG_SE1885_A02_FE`
 5. Press **F5**.
 
 ### Option B: CLI (Terminal)
@@ -140,16 +140,16 @@ Open 4 terminal tabs:
 
 ```bash
 # Tab 1: Backend
-dotnet run --project PHAMVIETDUNG_SE1885_A01_BE --urls="http://localhost:5000"
+dotnet run --project PHAMVIETDUNG_SE1885_A02_BE --urls="http://localhost:5000"
 
 # Tab 2: Analytics
-dotnet run --project PHAMVIETDUNG_SE1885_A01_AnalyticsAPI --urls="http://localhost:5100"
+dotnet run --project PHAMVIETDUNG_SE1885_A02_AnalyticsAPI --urls="http://localhost:5100"
 
 # Tab 3: AI Service
-dotnet run --project PHAMVIETDUNG_SE1885_A01_AiAPI --urls="http://localhost:5200"
+dotnet run --project PHAMVIETDUNG_SE1885_A02_AiAPI --urls="http://localhost:5200"
 
 # Tab 4: Frontend
-dotnet run --project PHAMVIETDUNG_SE1885_A01_FE --urls="http://localhost:5001"
+dotnet run --project PHAMVIETDUNG_SE1885_A02_FE --urls="http://localhost:5001"
 ```
 
 Access the application at **[http://localhost:5001](http://localhost:5001)**.

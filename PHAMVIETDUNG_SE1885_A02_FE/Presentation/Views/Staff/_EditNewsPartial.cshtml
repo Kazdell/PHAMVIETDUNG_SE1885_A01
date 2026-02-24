@@ -1,0 +1,295 @@
+@model PHAMVIETDUNG_SE1885_A02_FE.Presentation.ViewModels.NewsArticleViewModel
+@using PHAMVIETDUNG_SE1885_A02_FE.Presentation.ViewModels
+
+@{
+    var categories = ViewData["Categories"] as List<CategoryViewModel> ?? new List<CategoryViewModel>();
+    var tags = ViewData["Tags"] as List<TagViewModel> ?? new List<TagViewModel>();
+}
+
+<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header bg-surface border-bottom py-3 px-4">
+            <div>
+                <h5 class="modal-title fw-bold text-main" id="actionModalLabel">Edit Article</h5>
+                <p class="mb-0 small text-muted">Update your content and settings</p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 bg-body">
+            <form id="editNewsForm" asp-action="EditNews" asp-route-id="@Model.NewsArticleId" class="modal-form needs-validation" enctype="multipart/form-data" novalidate>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="NewsArticleId" />
+                <input type="hidden" asp-for="CreatedDate" />
+                <input type="hidden" asp-for="CreatedById" />
+                <input type="hidden" asp-for="ModifiedDate" />
+
+                <div class="row g-4">
+                    <!-- Left Column: Content -->
+                    <div class="col-lg-8 animate__animated animate__fadeInLeft">
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-body p-4">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="NewsTitle" class="form-control form-control-lg fw-bold" id="floatingTitle" placeholder="Title" />
+                                    <label for="floatingTitle">Article Title</label>
+                                    <span asp-validation-for="NewsTitle" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="form-floating mb-3">
+                                    <textarea asp-for="Headline" class="form-control" id="floatingHeadline" style="height: 100px" placeholder="Headline"></textarea>
+                                    <label for="floatingHeadline">Headline / Summary</label>
+                                    <span asp-validation-for="Headline" class="text-danger small"></span>
+                                </div>
+
+                                <div class="form-group mb-0">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="form-label fw-bold text-muted small uppercase">Content</label>
+                                        <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2 border-0 bg-primary-soft ps-3 pe-3" id="btnSuggestTagsEdit">
+                                            <i class="bi bi-stars"></i> Auto-Tag with AI
+                                        </button>
+                                    </div>
+                                    <textarea asp-for="NewsContent" class="form-control" rows="12" placeholder="Write your story here..."></textarea>
+                                    <span asp-validation-for="NewsContent" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Settings -->
+                    <div class="col-lg-4 animate__animated animate__fadeInRight">
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-white fw-bold border-bottom-0 pt-3">Publishing</div>
+                            <div class="card-body">
+                                <div class="form-group mb-3 position-relative">
+                                    <label class="form-label small text-muted">Category</label>
+                                    <input type="hidden" asp-for="CategoryId" id="CategoryId" />
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control" id="CategorySearch" placeholder="Search category..." autocomplete="off"
+                                               value="@(categories.FirstOrDefault(c => c.CategoryId == Model.CategoryId)?.CategoryName ?? "")">
+                                        <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+                                    </div>
+                                    <div id="CategoryList" class="list-group position-absolute w-100 shadow-lg border-0 mt-1 rounded-3" style="display:none; z-index: 1050; max-height: 200px; overflow-y: auto;">
+                                        @foreach (var cat in categories)
+                                        {
+                                            <a href="javascript:void(0)" class="list-group-item list-group-item-action category-item border-0 border-bottom" data-id="@cat.CategoryId" data-name="@cat.CategoryName">
+                                                @cat.CategoryName
+                                            </a>
+                                        }
+                                    </div>
+                                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label class="form-label small text-muted">Source</label>
+                                    <input asp-for="NewsSource" class="form-control" placeholder="Source..." />
+                                    <span asp-validation-for="NewsSource" class="text-danger small"></span>
+                                </div>
+
+                                <div class="form-group mb-0">
+                                    <label class="form-label small text-muted d-block mb-2">Status</label>
+                                    <div class="form-check form-switch p-0 m-0 d-flex align-items-center gap-2 bg-light rounded-3 p-2 border">
+                                        <input class="form-check-input ms-2 mt-0" type="checkbox" role="switch" id="newsStatusSwitchEdit" 
+                                               name="NewsStatus" value="true" 
+                                               @(Model.NewsStatus == true ? "checked" : "")
+                                               style="transform: scale(1.2); cursor: pointer;">
+                                        <input type="hidden" name="NewsStatus" value="false" />
+                                        <label class="form-check-label flex-grow-1 cursor-pointer ps-2" for="newsStatusSwitchEdit" id="statusLabelEdit">
+                                            @if (Model.NewsStatus == true)
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle">Published</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Draft</span>
+                                            }
+                                        </label>
+                                    </div>
+                                    <small class="text-muted d-block mt-1 fst-italic" style="font-size: 0.75rem">Update status to Published or Draft</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-white fw-bold border-bottom-0 pt-3">Featured Image</div>
+                            <div class="card-body">
+                                @if (!string.IsNullOrEmpty(Model.NewsImage))
+                                {
+                                    <div class="mb-2 position-relative rounded-3 overflow-hidden border">
+                                        <img src="@Model.NewsImage" class="img-fluid w-100 object-fit-cover" style="height: 120px;" alt="Current Image">
+                                    </div>
+                                }
+                                <div class="p-3 border-2 border-dashed rounded-3 text-center bg-light mb-2">
+                                    <i class="bi bi-cloud-upload fs-1 text-muted opacity-50"></i>
+                                    <div class="mt-2 text-muted small">Update Image</div>
+                                    <input asp-for="ImageFile" type="file" class="form-control mt-2 form-control-sm" accept="image/*" />
+                                </div>
+                                <div class="text-center text-muted small mb-2">- OR -</div>
+                                <input asp-for="NewsImage" type="url" class="form-control form-control-sm" placeholder="Update Image URL" />
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white fw-bold border-bottom-0 pt-3">Tags</div>
+                            <div class="card-body p-0">
+                                <div class="p-3" style="max-height: 250px; overflow-y: auto;">
+                                    @foreach (var tag in tags)
+                                    {
+                                        var isChecked = (Model.Tags != null && Model.Tags.Any(t => t.TagId == tag.TagId)) || (Model.SelectedTagIds != null && Model.SelectedTagIds.Contains(tag.TagId)) ? "checked" : "";
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="SelectedTagIds" value="@tag.TagId" id="tag_edit_@tag.TagId" @isChecked>
+                                            <label class="form-check-label small" for="tag_edit_@tag.TagId">@tag.TagName</label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top-0 d-flex justify-content-end px-0 pb-0 mt-3">
+                     <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                     <button type="submit" class="btn btn-primary" data-requires-online="true">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // Scoped Logic for Edit Modal
+        var modalForm = document.getElementById("editNewsForm");
+        
+        // Category Search Logic
+        var searchInput = modalForm.querySelector("#CategorySearch");
+        var hiddenInput = modalForm.querySelector("#CategoryId");
+        var list = modalForm.querySelector("#CategoryList");
+        var items = list ? list.querySelectorAll(".category-item") : [];
+
+        if(searchInput && list) {
+            searchInput.addEventListener("focus", function() {
+                list.style.display = "block";
+            });
+
+            document.addEventListener("click", function(e) {
+                if (!searchInput.contains(e.target) && !list.contains(e.target)) {
+                    list.style.display = "none";
+                }
+            });
+
+            searchInput.addEventListener("input", function() {
+                var filter = searchInput.value.toLowerCase();
+                var hasVisible = false;
+                items.forEach(function(item) {
+                     var text = item.getAttribute("data-name").toLowerCase();
+                    if (text.includes(filter)) {
+                        item.style.display = "";
+                        hasVisible = true;
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+                list.style.display = hasVisible ? "block" : "none";
+            });
+
+            items.forEach(function(item) {
+                item.addEventListener("click", function() {
+                     var id = this.getAttribute("data-id");
+                    var name = this.getAttribute("data-name");
+                    hiddenInput.value = id;
+                    searchInput.value = name;
+                    list.style.display = "none";
+                });
+            });
+        }
+
+        // Status Toggle Logic
+        var statusSwitch = modalForm.querySelector("#newsStatusSwitchEdit");
+        var statusLabel = modalForm.querySelector("#statusLabelEdit");
+        
+        if (statusSwitch && statusLabel) {
+            statusSwitch.addEventListener("change", function() {
+                if (this.checked) {
+                    statusLabel.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle">Published</span>';
+                } else {
+                    statusLabel.innerHTML = '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Draft</span>';
+                }
+            });
+        }
+
+        // AI Suggest Logic (Edit Mode)
+        var suggestBtn = modalForm.querySelector("#btnSuggestTagsEdit");
+        if(suggestBtn) {
+            suggestBtn.addEventListener("click", function() {
+                var content = modalForm.querySelector('textarea[name="NewsContent"]')?.value || "";
+                
+                if (!content || content.length < 10) {
+                    alert("Please enter at least 10 characters of content.");
+                    return;
+                }
+                
+                var originalText = suggestBtn.innerHTML;
+                suggestBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                suggestBtn.disabled = true;
+
+                fetch('/Staff/SuggestTags', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: content }) // Controller expects { content: "..." }
+                })
+                .then(response => {
+                        if (!response.ok) throw new Error("AI Service failed");
+                        return response.json();
+                })
+                .then(tags => {
+                    var count = 0;
+                    var matchedTags = [];
+                    var checkboxes = modalForm.querySelectorAll("input[name='SelectedTagIds']");
+                    
+                    checkboxes.forEach(cb => {
+                        var labelElement = cb.labels ? cb.labels[0] : cb.closest('.form-check')?.querySelector('label');
+                        if (labelElement) {
+                            var labelText = labelElement.innerText.trim();
+                            var tagNameFull = labelText.toLowerCase();
+                            var tagWords = tagNameFull.split(/[\s-]+/);
+                            
+                            var isMatch = tags.some(keyword => {
+                                var kw = keyword.toLowerCase().trim();
+                                if (kw.length < 3) return false;
+                                if (tagNameFull.includes(kw) || kw.includes(tagNameFull)) return true;
+                                return tagWords.some(tWord => {
+                                    if (tWord.length < 3) return false;
+                                    var matchLen = Math.min(tWord.length, kw.length, 4);
+                                    return tWord.substring(0, matchLen) === kw.substring(0, matchLen);
+                                });
+                            });
+
+                            if (isMatch) {
+                                if (!cb.checked) {
+                                    cb.checked = true;
+                                    count++;
+                                    matchedTags.push(labelText);
+                                    cb.closest('.form-check')?.classList.add('animate__animated', 'animate__flash');
+                                }
+                            }
+                        }
+                    });
+
+                    if (count > 0) {
+                        alert("AI matched " + count + " tags: " + matchedTags.join(", "));
+                    } else {
+                        alert("AI processed your content but couldn't find new tag matches.");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Failed to get AI suggestions.");
+                })
+                .finally(() => {
+                    suggestBtn.innerHTML = originalText;
+                    suggestBtn.disabled = false;
+                });
+            });
+        }
+    })();
+</script>
+@{await Html.RenderPartialAsync("~/Presentation/Views/Shared/_ValidationScriptsPartial.cshtml");}
