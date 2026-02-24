@@ -23,7 +23,7 @@ namespace PHAMVIETDUNG_SE1885_A01_FE.Presentation.Controllers
             var client = _httpClientFactory.CreateClient("AnalyticsClient");
             try 
             {
-                var response = await client.GetAsync("/api/dashboard");
+                var response = await client.GetAsync("/api/analytics/dashboard");
                 if (response.IsSuccessStatusCode)
                 {
                     var responseString = await response.Content.ReadAsStringAsync();
@@ -52,7 +52,7 @@ namespace PHAMVIETDUNG_SE1885_A01_FE.Presentation.Controllers
                 if (toDate.HasValue) queryParams.Add($"toDate={toDate.Value:yyyy-MM-dd}");
                 if (status.HasValue) queryParams.Add($"status={status.Value.ToString().ToLower()}");
 
-                var url = "/api/dashboard" + (queryParams.Any() ? "?" + string.Join("&", queryParams) : "");
+                var url = "/api/analytics/dashboard" + (queryParams.Any() ? "?" + string.Join("&", queryParams) : "");
                 var response = await client.GetAsync(url);
                 
                 if (response.IsSuccessStatusCode)
@@ -70,7 +70,7 @@ namespace PHAMVIETDUNG_SE1885_A01_FE.Presentation.Controllers
 
         public IActionResult ExportReports()
         {
-             return Redirect("http://localhost:5100/api/export"); 
+             return Redirect("http://localhost:5100/api/analytics/export"); 
         }
 
         public async Task<IActionResult> AuditLog(string? userEmail = null, string? entityType = null, DateTime? fromDate = null, DateTime? toDate = null, int page = 1)
@@ -200,7 +200,7 @@ namespace PHAMVIETDUNG_SE1885_A01_FE.Presentation.Controllers
             try 
             {
                 var client = _httpClientFactory.CreateClient("AnalyticsClient");
-                var response = await client.GetAsync("/api/dashboard");
+                var response = await client.GetAsync("/api/analytics/dashboard");
                 if (response.IsSuccessStatusCode)
                 {
                      ViewBag.DashboardStats = await response.Content.ReadAsStringAsync();

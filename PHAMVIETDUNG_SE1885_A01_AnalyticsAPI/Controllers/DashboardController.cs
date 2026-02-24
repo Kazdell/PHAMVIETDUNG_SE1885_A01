@@ -4,7 +4,7 @@ using PHAMVIETDUNG_SE1885_A01_BE.DataAccess.Models;
 
 namespace FUNewsManagementSystem.AnalyticsAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/analytics/[controller]")]
     [ApiController]
     public class DashboardController : ControllerBase
     {

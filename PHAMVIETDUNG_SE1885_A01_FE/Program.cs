@@ -17,6 +17,8 @@ builder.Services.AddSignalR();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<AuthHeaderHandler>();
 builder.Services.AddSession();
+builder.Services.AddMemoryCache();
+builder.Services.AddHostedService<PHAMVIETDUNG_SE1885_A01_FE.Infrastructure.Services.CacheRefreshWorker>();
 
 // Register Services
 builder.Services.AddWebOptimizer();

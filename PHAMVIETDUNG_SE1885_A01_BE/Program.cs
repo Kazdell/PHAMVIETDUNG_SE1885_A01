@@ -24,13 +24,10 @@ builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IGenericRepository<NewsTag>, GenericRepository<NewsTag>>();
 builder.Services.AddScoped<IGenericRepository<NewsView>, GenericRepository<NewsView>>();
 builder.Services.AddScoped<IAuditService, AuditService>();
-builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddMemoryCache();
 builder.Services.AddLazyCache(); // Application-level caching for Categories/Tags
-builder.Services.AddScoped<IAiCacheService, AiCacheService>();
-builder.Services.AddHostedService<CacheRefreshWorker>();
 
 builder.Services.AddSignalR();
 builder.Services.AddHttpContextAccessor();

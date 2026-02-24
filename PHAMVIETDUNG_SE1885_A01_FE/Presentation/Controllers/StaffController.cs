@@ -33,7 +33,7 @@ public class StaffController : Controller
 
         // 1. Get Global Stats from Analytics API
         var analyticsClient = _httpClientFactory.CreateClient("AnalyticsClient");
-        var analyticsResponse = await analyticsClient.GetAsync("/api/Dashboard");
+        var analyticsResponse = await analyticsClient.GetAsync("/api/analytics/Dashboard");
         if (analyticsResponse.IsSuccessStatusCode)
         {
             var content = await analyticsResponse.Content.ReadAsStringAsync();
@@ -79,7 +79,7 @@ public class StaffController : Controller
         if (!IsStaff()) return RedirectToAction("AccessDenied", "Account");
         
         var client = _httpClientFactory.CreateClient("AnalyticsClient");
-        var url = $"/api/Export?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}";
+        var url = $"/api/analytics/Export?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}";
         
         var response = await client.GetAsync(url);
         if (response.IsSuccessStatusCode)
@@ -95,7 +95,7 @@ public class StaffController : Controller
     {
         if (!IsStaff()) return Unauthorized();
         var client = _httpClientFactory.CreateClient("AnalyticsClient");
-        var response = await client.GetAsync("/api/Trending");
+        var response = await client.GetAsync("/api/analytics/Trending");
         if (response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync();
@@ -278,6 +278,7 @@ public class StaffController : Controller
     public async Task<IActionResult> News(int page = 1, int? tagId = null)
     {
         if (!IsStaff()) return RedirectToAction("AccessDenied", "Account");
+        await PrepareViewBag();
 
         var accountId = HttpContext.Session.GetString("AccountId");
         if (string.IsNullOrEmpty(accountId)) return RedirectToAction("Login", "Account");
@@ -308,6 +309,51 @@ public class StaffController : Controller
             return View(pagedNews);
         }
         return View(new List<NewsArticleViewModel>());
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> FilterNews(int page = 1, string keyword = "", string categoryId = "", string status = "")
+    {
+        if (!IsStaff()) return Unauthorized();
+
+        var accountId = HttpContext.Session.GetString("AccountId");
+        if (string.IsNullOrEmpty(accountId)) return Unauthorized();
+
+        var client = _httpClientFactory.CreateClient("CoreClient");
+        var filter = $"(CreatedById eq {accountId} or UpdatedById eq {accountId})";
+
+        var url = $"/api/NewsArticle?$filter={filter}&$orderby=CreatedDate desc&$expand=Category,NewsTags($expand=Tag)";
+        var response = await client.GetAsync(url);
+        
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            var news = JsonSerializer.Deserialize<List<NewsArticleViewModel>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                keyword = keyword.ToLower();
+                news = news.Where(n => (n.NewsTitle?.ToLower().Contains(keyword) ?? false) || (n.NewsContent?.ToLower().Contains(keyword) ?? false)).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(categoryId) && short.TryParse(categoryId, out short catId))
+            {
+                news = news.Where(n => n.CategoryId == catId).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(status) && bool.TryParse(status, out bool stat))
+            {
+                news = news.Where(n => n.NewsStatus == stat).ToList();
+            }
+
+            int pageSize = 5;
+            var pagedNews = news.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)news.Count / pageSize);
+
+            return PartialView("_NewsTablePartial", pagedNews);
+        }
+        return PartialView("_NewsTablePartial", new List<NewsArticleViewModel>());
     }
 
     [HttpGet]
