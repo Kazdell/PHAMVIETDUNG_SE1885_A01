@@ -1,30 +1,30 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace PHAMVIETDUNG_SE1885_A02_BE.Common
 {
-    public static class SystemMessages
-    {
-        // --- Error Codes ---
-        public const string GeneralError = "ER000";
-        public const string ActiveArticleDeleteError = "ER001";
-        public const string UsedCategoryDeleteError = "ER002";
-        public const string UsedTagDeleteError = "ER003";
-        public const string AccountWithArticlesDeleteError = "ER004";
-        public const string DuplicateEmail = "ER005";
-        public const string DuplicateCategory = "ER006";
-        public const string DuplicateTag = "ER007";
-        
-        public const string ValidationRequired = "ER101";
-        public const string ValidationMaxLength = "ER102";
-        public const string ValidationInvalidFormat = "ER103";
-        public const string ValidationRange = "ER104";
-        public const string ValidationFutureDate = "ER105";
+  public static class SystemMessages
+  {
+    // --- Error Codes ---
+    public const string GeneralError = "ER000";
+    public const string ActiveArticleDeleteError = "ER001";
+    public const string UsedCategoryDeleteError = "ER002";
+    public const string UsedTagDeleteError = "ER003";
+    public const string AccountWithArticlesDeleteError = "ER004";
+    public const string DuplicateEmail = "ER005";
+    public const string DuplicateCategory = "ER006";
+    public const string DuplicateTag = "ER007";
 
-        public const string DbConnectionError = "ER998";
-        public const string ExternalServiceError = "ER999";
+    public const string ValidationRequired = "ER101";
+    public const string ValidationMaxLength = "ER102";
+    public const string ValidationInvalidFormat = "ER103";
+    public const string ValidationRange = "ER104";
+    public const string ValidationFutureDate = "ER105";
 
-        // --- Message Dictionary ---
-        private static readonly Dictionary<string, string> _messages = new Dictionary<string, string>
+    public const string DbConnectionError = "ER998";
+    public const string ExternalServiceError = "ER999";
+
+    // --- Message Dictionary ---
+    private static readonly Dictionary<string, string> _messages = new Dictionary<string, string>
         {
             { GeneralError, "An unexpected error occurred." },
             { ActiveArticleDeleteError, "Cannot delete an active article. Please deactivate it first." },
@@ -45,18 +45,18 @@ namespace PHAMVIETDUNG_SE1885_A02_BE.Common
             { ExternalServiceError, "External service unavailable." }
         };
 
-        public static string GetMessage(string code, params object[] args)
-        {
-            if (_messages.TryGetValue(code, out var template))
-            {
-                return string.Format(template, args);
-            }
-            return "Unknown Error Code: " + code;
-        }
-
-        public static string GetMessageWithCode(string code, params object[] args)
-        {
-            return $"[{code}] {GetMessage(code, args)}";
-        }
+    public static string GetMessage(string code, params object[] args)
+    {
+      if (_messages.TryGetValue(code, out var template))
+      {
+        return string.Format(template, args);
+      }
+      return "Unknown Error Code: " + code;
     }
+
+    public static string GetMessageWithCode(string code, params object[] args)
+    {
+      return $"[{code}] {GetMessage(code, args)}";
+    }
+  }
 }

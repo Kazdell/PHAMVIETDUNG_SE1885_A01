@@ -5,34 +5,34 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace PHAMVIETDUNG_SE1885_A02_FE.Infrastructure.Filters
 {
-    public class OfflineExceptionHandlerAttribute : ExceptionFilterAttribute
+  public class OfflineExceptionHandlerAttribute : ExceptionFilterAttribute
+  {
+    private readonly IModelMetadataProvider _modelMetadataProvider;
+
+    public OfflineExceptionHandlerAttribute(IModelMetadataProvider modelMetadataProvider)
     {
-        private readonly IModelMetadataProvider _modelMetadataProvider;
+      _modelMetadataProvider = modelMetadataProvider;
+    }
 
-        public OfflineExceptionHandlerAttribute(IModelMetadataProvider modelMetadataProvider)
+    public override void OnException(ExceptionContext context)
+    {
+      if (context.Exception is HttpRequestException || context.Exception is TaskCanceledException)
+      {
+        var result = new ViewResult
         {
-            _modelMetadataProvider = modelMetadataProvider;
-        }
+          ViewName = "Offline",
+          StatusCode = 503
+        };
 
-        public override void OnException(ExceptionContext context)
-        {
-            if (context.Exception is HttpRequestException || context.Exception is TaskCanceledException)
-            {
-                var result = new ViewResult
-                {
-                    ViewName = "Offline",
-                    StatusCode = 503
-                };
-                
-                var viewData = new ViewDataDictionary(_modelMetadataProvider, context.ModelState)
+        var viewData = new ViewDataDictionary(_modelMetadataProvider, context.ModelState)
                 {
                     { "IsOffline", true }
                 };
-                
-                result.ViewData = viewData;
-                context.Result = result;
-                context.ExceptionHandled = true;
-            }
-        }
+
+        result.ViewData = viewData;
+        context.Result = result;
+        context.ExceptionHandled = true;
+      }
     }
+  }
 }

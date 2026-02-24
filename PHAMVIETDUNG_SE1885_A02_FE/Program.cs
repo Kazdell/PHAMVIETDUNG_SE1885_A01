@@ -1,4 +1,4 @@
-﻿using FUNewsManagementSystem.Client.Infrastructure;
+using FUNewsManagementSystem.Client.Infrastructure;
 using PHAMVIETDUNG_SE1885_A02_FE.Infrastructure.Hubs;
 using Polly;
 using WebOptimizer;
@@ -8,12 +8,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews(options =>
     {
-        options.Filters.Add<PHAMVIETDUNG_SE1885_A02_FE.Infrastructure.Filters.OfflineExceptionHandlerAttribute>();
+      options.Filters.Add<PHAMVIETDUNG_SE1885_A02_FE.Infrastructure.Filters.OfflineExceptionHandlerAttribute>();
     })
     .AddRazorOptions(options =>
     {
-        options.ViewLocationFormats.Add("/Presentation/Views/{1}/{0}.cshtml");
-        options.ViewLocationFormats.Add("/Presentation/Views/Shared/{0}.cshtml");
+      options.ViewLocationFormats.Add("/Presentation/Views/{1}/{0}.cshtml");
+      options.ViewLocationFormats.Add("/Presentation/Views/Shared/{0}.cshtml");
     });
 builder.Services.AddSignalR();
 
@@ -27,7 +27,7 @@ builder.Services.AddHostedService<PHAMVIETDUNG_SE1885_A02_FE.Infrastructure.Serv
 builder.Services.AddWebOptimizer();
 builder.Services.AddResponseCompression(options =>
 {
-    options.EnableForHttps = true;
+  options.EnableForHttps = true;
 });
 
 // Function to define retry policy
@@ -51,7 +51,7 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+  app.UseExceptionHandler("/Home/Error");
 }
 
 app.UseResponseCompression();
@@ -59,11 +59,11 @@ app.UseWebOptimizer();
 
 app.UseStaticFiles(new StaticFileOptions
 {
-    OnPrepareResponse = ctx =>
-    {
-        const int durationInSeconds = 60 * 60 * 24 * 365; // 1 year
-        ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=" + durationInSeconds;
-    }
+  OnPrepareResponse = ctx =>
+  {
+    const int durationInSeconds = 60 * 60 * 24 * 365; // 1 year
+    ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=" + durationInSeconds;
+  }
 });
 
 app.UseRouting();

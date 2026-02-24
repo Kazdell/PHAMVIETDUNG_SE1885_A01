@@ -1,24 +1,21 @@
-﻿using PHAMVIETDUNG_SE1885_A02_BE.DataAccess.Models;
+using PHAMVIETDUNG_SE1885_A02_BE.DataAccess.Models;
 
 namespace PHAMVIETDUNG_SE1885_A02_BE.DataAccess.Repositories
 {
-    public class SystemAccountRepository : GenericRepository<SystemAccount>, ISystemAccountRepository
+  public class SystemAccountRepository : GenericRepository<SystemAccount>, ISystemAccountRepository
+  {
+    public SystemAccountRepository(FUNewsManagementContext context) : base(context)
     {
-        private readonly FUNewsManagementContext _context;
-
-        public SystemAccountRepository(FUNewsManagementContext context) : base(context)
-        {
-            _context = context;
-        }
-
-        public SystemAccount GetByEmail(string email)
-        {
-            return _context.SystemAccounts.FirstOrDefault(s => s.AccountEmail == email);
-        }
-
-        public SystemAccount Login(string email, string password)
-        {
-            return _context.SystemAccounts.FirstOrDefault(s => s.AccountEmail == email && s.AccountPassword == password);
-        }
     }
+
+    public SystemAccount? GetByEmail(string email)
+    {
+      return _context.SystemAccounts.FirstOrDefault(s => s.AccountEmail == email);
+    }
+
+    public SystemAccount? Login(string email, string password)
+    {
+      return _context.SystemAccounts.FirstOrDefault(s => s.AccountEmail == email && s.AccountPassword == password);
+    }
+  }
 }

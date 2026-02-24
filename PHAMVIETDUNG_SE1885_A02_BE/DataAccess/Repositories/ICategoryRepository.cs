@@ -1,8 +1,8 @@
-﻿using PHAMVIETDUNG_SE1885_A02_BE.DataAccess.Models;
+using PHAMVIETDUNG_SE1885_A02_BE.DataAccess.Models;
 
 namespace PHAMVIETDUNG_SE1885_A02_BE.DataAccess.Repositories
 {
-    public interface ICategoryRepository : IGenericRepository<Category>
-    {
-    }
+  public interface ICategoryRepository : IGenericRepository<Category>
+  {
+  }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.OData;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
@@ -51,33 +51,33 @@ builder.Services.AddScoped<TokenService>();
 
 // JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
-var key = System.Text.Encoding.ASCII.GetBytes(jwtSettings.Secret);
+var key = System.Text.Encoding.ASCII.GetBytes(jwtSettings?.Secret ?? string.Empty);
 
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+  options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+  options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(key),
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidIssuer = jwtSettings.Issuer,
-        ValidAudience = jwtSettings.Audience,
-        ClockSkew = TimeSpan.Zero
-    };
+  options.RequireHttpsMetadata = false;
+  options.SaveToken = true;
+  options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+  {
+    ValidateIssuerSigningKey = true,
+    IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(key),
+    ValidateIssuer = true,
+    ValidateAudience = true,
+    ValidIssuer = jwtSettings.Issuer,
+    ValidAudience = jwtSettings.Audience,
+    ClockSkew = TimeSpan.Zero
+  };
 });
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+      options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     })
     .AddOData(opt => opt.Select().Filter().Count().OrderBy().Expand().SetMaxTop(100).AddRouteComponents("odata", GetEdmModel()));
 
@@ -86,24 +86,24 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
-    {
-        builder.WithOrigins("http://localhost:5260", "http://localhost:44021", "http://localhost:5000", "http://localhost:5100", "http://localhost:5200")
-               .AllowAnyMethod()
-               .AllowAnyHeader()
-               .AllowCredentials();
-    });
+  options.AddPolicy("AllowAll", builder =>
+  {
+    builder.WithOrigins("http://localhost:5260", "http://localhost:44021", "http://localhost:5000", "http://localhost:5100", "http://localhost:5200")
+             .AllowAnyMethod()
+             .AllowAnyHeader()
+             .AllowCredentials();
+  });
 });
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+  app.UseSwagger();
+  app.UseSwaggerUI();
 }
 
-app.UseStaticFiles(); 
+app.UseStaticFiles();
 
 app.UseMiddleware<PHAMVIETDUNG_SE1885_A02_BE.BusinessLogic.Middleware.GlobalExceptionHandlerMiddleware>();
 app.UseMiddleware<PHAMVIETDUNG_SE1885_A02_BE.BusinessLogic.Middleware.RequestLoggingMiddleware>();
@@ -121,13 +121,13 @@ app.Run();
 
 static IEdmModel GetEdmModel()
 {
-    var odataBuilder = new ODataConventionModelBuilder();
-    odataBuilder.EntitySet<SystemAccount>("SystemAccounts");
-    odataBuilder.EntitySet<Category>("Categories");
-    odataBuilder.EntitySet<NewsArticle>("NewsArticles");
-    odataBuilder.EntitySet<Tag>("Tags");
-    odataBuilder.EntitySet<NewsTag>("NewsTags");
-    return odataBuilder.GetEdmModel();
+  var odataBuilder = new ODataConventionModelBuilder();
+  odataBuilder.EntitySet<SystemAccount>("SystemAccounts");
+  odataBuilder.EntitySet<Category>("Categories");
+  odataBuilder.EntitySet<NewsArticle>("NewsArticles");
+  odataBuilder.EntitySet<Tag>("Tags");
+  odataBuilder.EntitySet<NewsTag>("NewsTags");
+  return odataBuilder.GetEdmModel();
 }
 
 public partial class Program { }
